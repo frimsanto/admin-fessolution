@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Prisma generated client (dibuat ulang lewat `npm run build`)
+backend/src/generated/
+
+# NgodingPakeAI local cache
+.ngodingpakeai/

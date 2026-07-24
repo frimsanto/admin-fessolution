@@ -1,0 +1,99 @@
+// Skema database Super Admin Panel FES Solution
+// Database khusus platform (platform_admin) — terpisah dari database aplikasi tenant.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  runtime  = "nodejs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Status langganan tenant
+enum TenantStatus {
+  TRIAL
+  AKTIF
+  SUSPENDED
+  EXPIRED
+}
+
+/// Akun login pemilik platform (super admin). Tidak terhubung dengan auth tenant.
+model SuperAdmin {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("super_admins")
+}
+
+/// Produk SaaS yang dikelola platform (CafeOS, BilliardOS, dst).
+model App {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenants    Tenant[]
+  broadcasts BroadcastNotification[]
+
+  @@map("apps")
+}
+
+/// Klien (bisnis) yang berlangganan salah satu aplikasi SaaS.
+model Tenant {
+  id           String       @id @default(uuid()) @db.Uuid
+  appId        String       @map("app_id") @db.Uuid
+  businessName String       @map("business_name")
+  ownerEmail   String       @map("owner_email")
+  status       TenantStatus @default(TRIAL)
+  joinedDate   DateTime     @default(now()) @map("joined_date")
+  expiredDate  DateTime     @map("expired_date")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  app      App       @relation(fields: [appId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@index([appId])
+  @@index([status])
+  @@index([joinedDate])
+  @@index([expiredDate])
+  @@map("tenants")
+}
+
+/// Catatan pembayaran langganan tenant (konfirmasi manual oleh super admin).
+model Payment {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  amount      Decimal  @db.Decimal(14, 2)
+  paymentDate DateTime @default(now()) @map("payment_date")
+  adminNote   String?  @map("admin_note")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([paymentDate])
+  @@map("payments")
+}
+
+/// Pengumuman massal ke tenant. appId null berarti dikirim ke semua aplikasi.
+model BroadcastNotification {
+  id      String   @id @default(uuid()) @db.Uuid
+  appId   String?  @map("app_id") @db.Uuid
+  title   String
+  message String
+  sentAt  DateTime @default(now()) @map("sent_at")
+
+  app App? @relation(fields: [appId], references: [id], onDelete: SetNull)
+
+  @@index([appId])
+  @@index([sentAt])
+  @@map("broadcast_notifications")
+}
