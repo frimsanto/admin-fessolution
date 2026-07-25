@@ -66,3 +66,77 @@ export async function ambilDaftarAplikasi(): Promise<DaftarAplikasi> {
     daftar,
   }
 }
+
+export const POLA_SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/
+
+export type IsianAplikasiBaru = {
+  nama: string
+  slug: string
+}
+
+/** Aplikasi yang baru dibuat: langsung berjalan dan belum punya tenant. */
+function keAplikasiBaru(item: {
+  id: string
+  name: string
+  slug: string
+  status: boolean
+  createdAt: Date
+}): AplikasiDto {
+  return {
+    appId: item.id,
+    nama: item.name,
+    slug: item.slug,
+    aktif: item.status,
+    jumlahTenant: 0,
+    jumlahTenantAktif: 0,
+    dibuatPada: item.createdAt.toISOString(),
+  }
+}
+
+export type GagalBuatAplikasi = { bentrok: 'nama' | 'slug'; pesan: string }
+
+/**
+ * Tambah aplikasi baru. Mengembalikan objek bentrok kalau nama atau slugnya
+ * sudah dipakai — pengecekan tetap dilapisi unique constraint di database
+ * supaya dua permintaan bersamaan tidak lolos berdua.
+ */
+export async function buatAplikasi(
+  isian: IsianAplikasiBaru,
+): Promise<AplikasiDto | GagalBuatAplikasi> {
+  const nama = isian.nama.trim()
+  const slug = isian.slug.trim()
+
+  const kembarNama = await prisma.app.findFirst({
+    where: { name: { equals: nama, mode: 'insensitive' } },
+    select: { name: true },
+  })
+  if (kembarNama) {
+    return { bentrok: 'nama', pesan: `Nama "${kembarNama.name}" sudah dipakai aplikasi lain.` }
+  }
+
+  const kembarSlug = await prisma.app.findFirst({
+    where: { slug: { equals: slug, mode: 'insensitive' } },
+    select: { name: true },
+  })
+  if (kembarSlug) {
+    return { bentrok: 'slug', pesan: `Slug "${slug}" sudah dipakai oleh ${kembarSlug.name}.` }
+  }
+
+  try {
+    const dibuat = await prisma.app.create({
+      data: { name: nama, slug },
+      select: { id: true, name: true, slug: true, status: true, createdAt: true },
+    })
+    return keAplikasiBaru(dibuat)
+  } catch (err) {
+    // P2002 = unique constraint; terjadi kalau ada permintaan lain menyelip.
+    if (typeof err === 'object' && err !== null && (err as { code?: string }).code === 'P2002') {
+      return { bentrok: 'slug', pesan: `Slug "${slug}" sudah dipakai aplikasi lain.` }
+    }
+    throw err
+  }
+}
+
+export function adalahGagal(hasil: AplikasiDto | GagalBuatAplikasi): hasil is GagalBuatAplikasi {
+  return 'bentrok' in hasil
+}
