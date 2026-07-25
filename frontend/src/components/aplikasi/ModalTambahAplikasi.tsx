@@ -1,24 +1,31 @@
 import { useEffect, useRef, useState } from 'react'
 
+import { Loader2 } from 'lucide-react'
+
 import { ModalDasar, TombolBatal } from '@/components/ui/ModalDasar'
-import {
-  adaGalat,
-  buatAplikasiBaru,
-  buatSlug,
-  validasiAplikasiBaru,
-  type GalatAplikasi,
-} from '@/lib/validasi-aplikasi'
-import type { Aplikasi } from '@/types/aplikasi'
+import { adaGalat, buatSlug, validasiAplikasiBaru, type GalatAplikasi } from '@/lib/validasi-aplikasi'
+import type { Aplikasi, IsianAplikasiBaru } from '@/types/aplikasi'
 
 type Props = {
   terbuka: boolean
-  /** Dipakai untuk mengecek duplikasi nama dan slug. */
+  /** Dipakai untuk mengecek duplikasi nama dan slug sebelum dikirim. */
   daftar: Aplikasi[]
-  onSimpan: (aplikasi: Aplikasi) => void
+  /** Permintaan sedang dikirim — modal dikunci. */
+  sedangProses?: boolean
+  /** Pesan kegagalan dari server (mis. slug bentrok), agar isian bisa diperbaiki. */
+  galatServer?: string | null
+  onSimpan: (isian: IsianAplikasiBaru) => void
   onBatal: () => void
 }
 
-export function ModalTambahAplikasi({ terbuka, daftar, onSimpan, onBatal }: Props) {
+export function ModalTambahAplikasi({
+  terbuka,
+  daftar,
+  sedangProses = false,
+  galatServer = null,
+  onSimpan,
+  onBatal,
+}: Props) {
   const [nama, setNama] = useState('')
   const [slug, setSlug] = useState('')
   // Slug ikut nama sampai super admin mengubahnya sendiri.
@@ -45,7 +52,7 @@ export function ModalTambahAplikasi({ terbuka, daftar, onSimpan, onBatal }: Prop
     setGalat(hasil)
     if (adaGalat(hasil)) return
 
-    onSimpan(buatAplikasiBaru({ nama, slug }))
+    onSimpan({ nama: nama.trim(), slug: slug.trim() })
   }
 
   return (
@@ -55,15 +62,18 @@ export function ModalTambahAplikasi({ terbuka, daftar, onSimpan, onBatal }: Prop
       idJudul="judul-modal-aplikasi"
       fokusAwal={kolomNama}
       onTutup={onBatal}
+      sedangProses={sedangProses}
       footer={
         <>
-          <TombolBatal onClick={onBatal} />
+          <TombolBatal onClick={onBatal} nonaktif={sedangProses} />
           <button
             type="button"
             onClick={simpan}
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            disabled={sedangProses}
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
           >
-            Simpan aplikasi
+            {sedangProses && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
+            {sedangProses ? 'Menyimpan…' : 'Simpan aplikasi'}
           </button>
         </>
       }
@@ -80,6 +90,7 @@ export function ModalTambahAplikasi({ terbuka, daftar, onSimpan, onBatal }: Prop
             id="nama-aplikasi"
             type="text"
             value={nama}
+            disabled={sedangProses}
             onChange={(e) => ubahNama(e.target.value)}
             placeholder="Contoh: LaundryOS"
             aria-invalid={galat.nama !== undefined}
@@ -101,6 +112,7 @@ export function ModalTambahAplikasi({ terbuka, daftar, onSimpan, onBatal }: Prop
             id="slug-aplikasi"
             type="text"
             value={slug}
+            disabled={sedangProses}
             onChange={(e) => {
               setSlugManual(true)
               setSlug(e.target.value)
@@ -120,6 +132,15 @@ export function ModalTambahAplikasi({ terbuka, daftar, onSimpan, onBatal }: Prop
             </p>
           )}
         </div>
+
+        {galatServer && (
+          <p
+            role="alert"
+            className="rounded-lg border border-expired/30 bg-expired/10 px-3 py-2 text-sm text-expired"
+          >
+            {galatServer}
+          </p>
+        )}
       </div>
     </ModalDasar>
   )

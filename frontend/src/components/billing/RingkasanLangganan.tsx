@@ -1,6 +1,6 @@
 import { SeksiKosong } from '@/components/ui/KartuSeksi'
-import { hitungRingkasanLangganan } from '@/lib/ringkasan-langganan'
-import { LABEL_STATUS, type StatusTenant, type Tenant } from '@/types/tenant'
+import type { BarisStatusLangganan, StatusLanggananResponse } from '@/types/billing'
+import { LABEL_STATUS, type StatusTenant } from '@/types/tenant'
 
 /** Warna status dipakai hanya sebagai penanda kecil — angka tetap memakai warna teks. */
 const WARNA_TITIK: Record<StatusTenant, string> = {
@@ -17,8 +17,15 @@ const KETERANGAN: Record<StatusTenant, string> = {
   EXPIRED: 'Masa aktif sudah lewat',
 }
 
-export function RingkasanLangganan({ daftar }: { daftar: Tenant[] }) {
-  const { total, baris } = hitungRingkasanLangganan(daftar)
+type Props = {
+  /** Sudah dikelompokkan dan dihitung backend. */
+  ringkasan: StatusLanggananResponse
+  /** Kalimat di bawah batang komposisi; ada bawaannya untuk cakupan seluruh platform. */
+  catatan?: string
+}
+
+export function RingkasanLangganan({ ringkasan, catatan }: Props) {
+  const { total, baris } = ringkasan
 
   if (total === 0) {
     return <SeksiKosong pesan="Belum ada tenant untuk diringkas." />
@@ -62,14 +69,14 @@ export function RingkasanLangganan({ daftar }: { daftar: Tenant[] }) {
           ))}
         </div>
         <p className="mt-2 text-xs text-ink-faint">
-          Total {total} tenant di seluruh aplikasi platform.
+          {catatan ?? `Total ${total} tenant di seluruh aplikasi platform.`}
         </p>
       </div>
     </div>
   )
 }
 
-function ringkasanUntukPembacaLayar(baris: { status: StatusTenant; jumlah: number }[]): string {
+function ringkasanUntukPembacaLayar(baris: BarisStatusLangganan[]): string {
   const bagian = baris
     .filter((item) => item.jumlah > 0)
     .map((item) => `${LABEL_STATUS[item.status]} ${item.jumlah}`)

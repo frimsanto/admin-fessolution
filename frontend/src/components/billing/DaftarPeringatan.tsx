@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 import { BadgeStatus } from '@/components/ui/BadgeStatus'
 import { SeksiKosong } from '@/components/ui/KartuSeksi'
 import { formatTanggal, sisaHari } from '@/lib/format'
-import { AMBANG_HARI, tenantAkanHabis } from '@/lib/peringatan-masa-aktif'
 import type { Tenant } from '@/types/tenant'
 
 function labelMendesak(sisa: number): string {
@@ -13,20 +12,25 @@ function labelMendesak(sisa: number): string {
   return `${sisa} hari lagi`
 }
 
-export function DaftarPeringatan({ daftar }: { daftar: Tenant[] }) {
-  const perlu = tenantAkanHabis(daftar)
+type Props = {
+  /** Sudah disaring dan diurut backend: yang paling mendesak lebih dulu. */
+  daftar: Tenant[]
+  /** Ambang hari yang dipakai backend, untuk kalimat saat daftarnya kosong. */
+  ambangHari: number
+}
 
-  if (perlu.length === 0) {
+export function DaftarPeringatan({ daftar, ambangHari }: Props) {
+  if (daftar.length === 0) {
     return (
       <SeksiKosong
-        pesan={`Tidak ada tenant yang masa aktifnya habis dalam ${AMBANG_HARI} hari ke depan.`}
+        pesan={`Tidak ada tenant yang masa aktifnya habis dalam ${ambangHari} hari ke depan.`}
       />
     )
   }
 
   return (
     <ul className="divide-y divide-hairline">
-      {perlu.map((tenant) => {
+      {daftar.map((tenant) => {
         const sisa = sisaHari(tenant.tanggalBerakhir)
         // Dua hari terakhir dianggap paling mendesak.
         const mendesak = sisa <= 1

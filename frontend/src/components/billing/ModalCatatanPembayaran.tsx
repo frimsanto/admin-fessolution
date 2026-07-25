@@ -15,6 +15,8 @@ type Props = {
   /** Tenant yang sedang dikonfirmasi; null berarti modal tertutup. */
   tenant: Tenant | null
   sedangProses?: boolean
+  /** Pesan kegagalan dari server, ditampilkan agar isiannya bisa dikirim ulang. */
+  galatServer?: string | null
   onSimpan: (tenant: Tenant, isian: IsianPembayaran) => void
   onBatal: () => void
 }
@@ -25,6 +27,7 @@ const BATAS_CATATAN = 200
 export function ModalCatatanPembayaran({
   tenant,
   sedangProses = false,
+  galatServer = null,
   onSimpan,
   onBatal,
 }: Props) {
@@ -140,12 +143,12 @@ export function ModalCatatanPembayaran({
             </p>
           </div>
 
-          {galat && (
+          {(galat ?? galatServer) && (
             <p
               role="alert"
               className="rounded-lg border border-expired/30 bg-expired/10 px-3 py-2 text-sm text-expired"
             >
-              {galat}
+              {galat ?? galatServer}
             </p>
           )}
         </div>

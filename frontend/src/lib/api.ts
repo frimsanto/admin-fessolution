@@ -38,6 +38,20 @@ export function hapusToken(): void {
   localStorage.removeItem(KUNCI_TOKEN)
 }
 
+/**
+ * Rangkai query string dari parameter opsional. Nilai `undefined` atau string
+ * kosong dibuang supaya URL-nya tidak berisi filter yang sebenarnya tidak dipakai.
+ */
+export function kueri(param: Record<string, string | number | undefined>): string {
+  const isi = new URLSearchParams()
+  for (const [kunci, nilai] of Object.entries(param)) {
+    if (nilai === undefined || nilai === '') continue
+    isi.set(kunci, String(nilai))
+  }
+  const teks = isi.toString()
+  return teks === '' ? '' : `?${teks}`
+}
+
 type OpsiMinta = {
   metode?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
   isi?: unknown
@@ -76,6 +90,15 @@ export function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
   return minta<T>(path, { signal })
 }
 
+export function apiPost<T>(path: string, isi: unknown, signal?: AbortSignal): Promise<T> {
+  return minta<T>(path, { metode: 'POST', isi, signal })
+}
+
 export function apiPatch<T>(path: string, isi: unknown, signal?: AbortSignal): Promise<T> {
   return minta<T>(path, { metode: 'PATCH', isi, signal })
+}
+
+/** `isi` boleh dikosongkan — beberapa endpoint PUT hanya membalik keadaan. */
+export function apiPut<T>(path: string, isi?: unknown, signal?: AbortSignal): Promise<T> {
+  return minta<T>(path, { metode: 'PUT', isi, signal })
 }

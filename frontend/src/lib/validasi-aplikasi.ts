@@ -1,9 +1,4 @@
-import type { Aplikasi } from '@/types/aplikasi'
-
-export type IsianAplikasiBaru = {
-  nama: string
-  slug: string
-}
+import type { Aplikasi, IsianAplikasiBaru } from '@/types/aplikasi'
 
 export type GalatAplikasi = Partial<Record<keyof IsianAplikasiBaru, string>>
 
@@ -27,6 +22,9 @@ function samakan(teks: string): string {
 /**
  * Validasi formulir aplikasi baru, termasuk cek duplikasi terhadap daftar yang
  * sudah ada. Mengembalikan objek kosong kalau semuanya sah.
+ *
+ * Cek duplikasi di sini hanya untuk umpan balik cepat — backend tetap menolak
+ * dengan 409 kalau ada yang menyelip di antara pemuatan daftar dan penyimpanan.
  */
 export function validasiAplikasiBaru(
   isian: IsianAplikasiBaru,
@@ -60,19 +58,4 @@ export function validasiAplikasiBaru(
 
 export function adaGalat(galat: GalatAplikasi): boolean {
   return Object.keys(galat).length > 0
-}
-
-/** Aplikasi baru selalu lahir dalam keadaan berjalan dan belum punya tenant. */
-export function buatAplikasiBaru(isian: IsianAplikasiBaru, sekarang: Date = new Date()): Aplikasi {
-  const slug = isian.slug.trim()
-
-  return {
-    appId: `app-${slug}-${sekarang.getTime()}`,
-    nama: isian.nama.trim(),
-    slug,
-    aktif: true,
-    jumlahTenant: 0,
-    jumlahTenantAktif: 0,
-    dibuatPada: sekarang.toISOString(),
-  }
 }

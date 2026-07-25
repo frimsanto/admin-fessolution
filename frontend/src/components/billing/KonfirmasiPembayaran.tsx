@@ -14,14 +14,39 @@ import type { Tenant } from '@/types/tenant'
 
 type Props = {
   daftar: Tenant[]
-  /** Dipanggil setelah super admin mengisi dan menyetujui konfirmasi. */
-  onKonfirmasi: (tenant: Tenant, isian: IsianPembayaran) => void
+  /** Permintaan konfirmasi sedang dikirim — modal dikunci. */
+  sedangProses?: boolean
+  /** Pesan kegagalan dari server, ditampilkan di dalam modal. */
+  galat?: string | null
+  /**
+   * Dipanggil setelah super admin mengisi dan menyetujui konfirmasi.
+   * Kembalikan true kalau tersimpan — modal baru ditutup, supaya isian tidak
+   * hilang saat servernya menolak.
+   */
+  onKonfirmasi: (tenant: Tenant, isian: IsianPembayaran) => Promise<boolean>
+  /** Dipanggil saat modal ditutup, untuk membersihkan galat di halaman. */
+  onTutupModal?: () => void
 }
 
-export function KonfirmasiPembayaran({ daftar, onKonfirmasi }: Props) {
+export function KonfirmasiPembayaran({
+  daftar,
+  sedangProses = false,
+  galat = null,
+  onKonfirmasi,
+  onTutupModal,
+}: Props) {
   const [dipilih, setDipilih] = useState<Tenant | null>(null)
 
   const menunggu = tenantMenungguKonfirmasi(daftar)
+
+  async function simpan(tenant: Tenant, isian: IsianPembayaran) {
+    if (await onKonfirmasi(tenant, isian)) setDipilih(null)
+  }
+
+  function tutup() {
+    setDipilih(null)
+    onTutupModal?.()
+  }
 
   if (menunggu.length === 0) {
     return <SeksiKosong pesan="Tidak ada tenant yang menunggu konfirmasi pembayaran." />
@@ -67,11 +92,10 @@ export function KonfirmasiPembayaran({ daftar, onKonfirmasi }: Props) {
 
       <ModalCatatanPembayaran
         tenant={dipilih}
-        onBatal={() => setDipilih(null)}
-        onSimpan={(tenant, isian) => {
-          onKonfirmasi(tenant, isian)
-          setDipilih(null)
-        }}
+        sedangProses={sedangProses}
+        galatServer={galat}
+        onBatal={tutup}
+        onSimpan={(tenant, isian) => void simpan(tenant, isian)}
       />
     </>
   )

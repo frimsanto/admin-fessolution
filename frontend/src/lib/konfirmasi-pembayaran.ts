@@ -31,6 +31,9 @@ export function tenantMenungguKonfirmasi(
 /**
  * Tanggal berakhir setelah konfirmasi. Kalau masa aktifnya sudah lewat,
  * perpanjangan dihitung dari hari ini — bukan dari tanggal lama yang sudah basi.
+ *
+ * Dipakai hanya untuk pratinjau di modal; angka yang berlaku tetap yang
+ * dikembalikan backend setelah konfirmasi tersimpan.
  */
 export function tanggalSetelahPerpanjangan(
   tanggalBerakhir: string,
@@ -40,17 +43,4 @@ export function tanggalSetelahPerpanjangan(
   const lama = new Date(tanggalBerakhir)
   const mulai = lama.getTime() > sekarang.getTime() ? lama : sekarang
   return new Date(mulai.getTime() + hari * 86_400_000).toISOString()
-}
-
-/** Hasil tenant setelah pembayaran dikonfirmasi: aktif dan masa berlakunya diperpanjang. */
-export function tenantSetelahKonfirmasi(
-  tenant: Tenant,
-  hari: number = HARI_PERPANJANGAN,
-  sekarang: Date = new Date(),
-): Tenant {
-  return {
-    ...tenant,
-    status: 'AKTIF',
-    tanggalBerakhir: tanggalSetelahPerpanjangan(tenant.tanggalBerakhir, hari, sekarang),
-  }
 }

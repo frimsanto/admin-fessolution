@@ -57,13 +57,54 @@ export function KerangkaDetail() {
   )
 }
 
-export function KeadaanGagal({ pesan, onCobaLagi }: { pesan: string; onCobaLagi: () => void }) {
+/** Kerangka kartu selagi data dimuat, mengikuti kisi halaman aplikasi. */
+export function KerangkaKartu({ jumlah = 3 }: { jumlah?: number }) {
+  return (
+    <div
+      className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+      role="status"
+      aria-label="Memuat data"
+    >
+      {Array.from({ length: jumlah }, (_, i) => (
+        <div key={i} className="rounded-2xl border border-hairline bg-surface p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-2">
+              <div className="h-4 w-32 animate-pulse rounded bg-white/8" />
+              <div className="h-2.5 w-20 animate-pulse rounded bg-white/5" />
+            </div>
+            <div className="h-5 w-16 animate-pulse rounded-full bg-white/6" />
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            {[0, 1].map((j) => (
+              <div key={j} className="h-16 animate-pulse rounded-xl bg-white/5" />
+            ))}
+          </div>
+
+          <div className="mt-4 h-3 w-40 animate-pulse rounded bg-white/5" />
+          <div className="mt-4 h-9 animate-pulse rounded-lg bg-white/5" />
+        </div>
+      ))}
+      <span className="sr-only">Memuat daftar aplikasi…</span>
+    </div>
+  )
+}
+
+export function KeadaanGagal({
+  pesan,
+  judul = 'Gagal memuat data',
+  onCobaLagi,
+}: {
+  pesan: string
+  judul?: string
+  onCobaLagi: () => void
+}) {
   return (
     <div className="rounded-2xl border border-expired/25 bg-expired/5 px-6 py-14 text-center">
       <div className="mx-auto mb-4 grid size-11 place-items-center rounded-xl bg-expired/10">
         <AlertTriangle className="size-5 text-expired" aria-hidden="true" />
       </div>
-      <p className="text-sm font-medium text-ink">Gagal memuat data tenant</p>
+      <p className="text-sm font-medium text-ink">{judul}</p>
       <p className="mx-auto mt-1 max-w-md text-sm text-ink-faint">{pesan}</p>
 
       <button
@@ -74,21 +115,6 @@ export function KeadaanGagal({ pesan, onCobaLagi }: { pesan: string; onCobaLagi:
         <RefreshCw className="size-4" aria-hidden="true" />
         Coba lagi
       </button>
-    </div>
-  )
-}
-
-export function BannerDataTiruan({ endpoint = 'GET /api/tenant' }: { endpoint?: string }) {
-  return (
-    <div
-      role="status"
-      className="mb-5 rounded-xl border border-suspended/30 bg-suspended/10 px-4 py-3 text-sm text-ink"
-    >
-      <span className="font-medium">Menampilkan data tiruan.</span>{' '}
-      <span className="text-ink-muted">
-        Endpoint <code className="font-mono text-xs">{endpoint}</code> belum tersedia di backend,
-        jadi halaman ini memakai contoh data selama pengembangan.
-      </span>
     </div>
   )
 }

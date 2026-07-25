@@ -5,12 +5,13 @@ import { Link, useParams } from 'react-router-dom'
 import { RingkasanLangganan } from '@/components/billing/RingkasanLangganan'
 import { RiwayatPembayaran } from '@/components/billing/RiwayatPembayaran'
 import { KartuSeksi, SeksiKosong } from '@/components/ui/KartuSeksi'
-import { DAFTAR_APLIKASI_TIRUAN } from '@/data/aplikasi-tiruan'
-import { PEMBAYARAN_TIRUAN } from '@/data/pembayaran-tiruan'
-import { TENANT_TIRUAN } from '@/data/tenant-tiruan'
+import { KeadaanGagal, KerangkaDetail } from '@/components/ui/KeadaanMuat'
+import { useStatistikAplikasi } from '@/hooks/useStatistikAplikasi'
 import { formatRupiah, formatTanggal } from '@/lib/format'
 import { varianDaftar, varianItem } from '@/lib/motion'
-import { cariAplikasiPerSlug, hitungStatistikAplikasi } from '@/lib/statistik-aplikasi'
+import { keBarisRingkasan } from '@/lib/ringkasan-langganan'
+import type { StatistikAplikasiResponse } from '@/types/aplikasi'
+import type { DaftarPembayaranResponse } from '@/types/pembayaran'
 
 function TautanKembali() {
   return (
@@ -24,27 +25,29 @@ function TautanKembali() {
   )
 }
 
-export function StatistikAplikasiPage() {
-  const { slug } = useParams<{ slug: string }>()
+function AplikasiTidakDitemukan({ slug }: { slug?: string }) {
+  return (
+    <>
+      <TautanKembali />
+      <div className="rounded-2xl border border-hairline bg-surface px-6 py-16 text-center">
+        <p className="text-sm font-medium text-ink">Aplikasi tidak ditemukan</p>
+        <p className="mx-auto mt-1 max-w-md text-sm text-ink-faint">
+          Tidak ada aplikasi dengan slug <span className="font-mono">{slug}</span>.
+        </p>
+      </div>
+    </>
+  )
+}
 
-  // Data tiruan — diganti panggilan API saat endpoint statistik aplikasi tersedia.
-  const aplikasi = cariAplikasiPerSlug(DAFTAR_APLIKASI_TIRUAN, slug)
-
-  if (!aplikasi) {
-    return (
-      <>
-        <TautanKembali />
-        <div className="rounded-2xl border border-hairline bg-surface px-6 py-16 text-center">
-          <p className="text-sm font-medium text-ink">Aplikasi tidak ditemukan</p>
-          <p className="mx-auto mt-1 max-w-md text-sm text-ink-faint">
-            Tidak ada aplikasi dengan slug <span className="font-mono">{slug}</span>.
-          </p>
-        </div>
-      </>
-    )
-  }
-
-  const statistik = hitungStatistikAplikasi(aplikasi, TENANT_TIRUAN, PEMBAYARAN_TIRUAN)
+function IsiStatistik({
+  statistik,
+  riwayat,
+}: {
+  statistik: StatistikAplikasiResponse
+  riwayat: DaftarPembayaranResponse | null
+}) {
+  const { aplikasi } = statistik
+  const pembayaran = riwayat?.daftar ?? []
 
   return (
     <>
@@ -102,7 +105,13 @@ export function StatistikAplikasiPage() {
           judul="Status langganan tenant"
           deskripsi={`Rincian tenant ${aplikasi.nama} menurut status.`}
         >
-          <RingkasanLangganan daftar={statistik.tenant} />
+          <RingkasanLangganan
+            ringkasan={{
+              total: statistik.totalTenant,
+              baris: keBarisRingkasan(statistik.statusLangganan, statistik.totalTenant),
+            }}
+            catatan={`Total ${statistik.totalTenant} tenant memakai ${aplikasi.nama}.`}
+          />
         </KartuSeksi>
 
         <KartuSeksi
@@ -110,13 +119,45 @@ export function StatistikAplikasiPage() {
           deskripsi={`Pembayaran yang tercatat untuk ${aplikasi.nama}.`}
           isiRapat
         >
-          {statistik.pembayaran.length === 0 ? (
+          {pembayaran.length === 0 ? (
             <SeksiKosong pesan="Belum ada pembayaran untuk aplikasi ini." />
           ) : (
-            <RiwayatPembayaran daftar={statistik.pembayaran} />
+            <RiwayatPembayaran daftar={pembayaran} />
           )}
         </KartuSeksi>
       </motion.div>
     </>
   )
+}
+
+export function StatistikAplikasiPage() {
+  const { slug } = useParams<{ slug: string }>()
+  const { memuat, statistik, riwayat, tidakDitemukan, pesanGagal, muatUlang } =
+    useStatistikAplikasi(slug)
+
+  if (memuat) {
+    return (
+      <>
+        <TautanKembali />
+        <KerangkaDetail />
+      </>
+    )
+  }
+
+  if (pesanGagal) {
+    return (
+      <>
+        <TautanKembali />
+        <KeadaanGagal
+          judul="Gagal memuat statistik aplikasi"
+          pesan={pesanGagal}
+          onCobaLagi={muatUlang}
+        />
+      </>
+    )
+  }
+
+  if (tidakDitemukan || !statistik) return <AplikasiTidakDitemukan slug={slug} />
+
+  return <IsiStatistik statistik={statistik} riwayat={riwayat} />
 }

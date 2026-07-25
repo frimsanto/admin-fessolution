@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 import { DaftarPeringatan } from '@/components/billing/DaftarPeringatan'
 import { KonfirmasiPembayaran } from '@/components/billing/KonfirmasiPembayaran'
@@ -8,56 +8,74 @@ import { RingkasanLangganan } from '@/components/billing/RingkasanLangganan'
 import { RiwayatPembayaran } from '@/components/billing/RiwayatPembayaran'
 import { JudulHalaman } from '@/components/layout/JudulHalaman'
 import { KartuSeksi, SeksiKosong } from '@/components/ui/KartuSeksi'
-import { BannerDataTiruan, KeadaanGagal } from '@/components/ui/KeadaanMuat'
-import { PEMBAYARAN_TIRUAN } from '@/data/pembayaran-tiruan'
+import { KeadaanGagal } from '@/components/ui/KeadaanMuat'
+import { useBilling } from '@/hooks/useBilling'
 import { useDaftarTenant } from '@/hooks/useDaftarTenant'
 import { formatRupiah, formatTanggal } from '@/lib/format'
-import { HARI_PERPANJANGAN, tenantSetelahKonfirmasi } from '@/lib/konfirmasi-pembayaran'
 import { varianDaftar } from '@/lib/motion'
-import { totalNilaiPembayaran } from '@/lib/pembayaran'
-import { AMBANG_HARI } from '@/lib/peringatan-masa-aktif'
-import type { Pembayaran } from '@/types/pembayaran'
-import type { Tenant } from '@/types/tenant'
+import { konfirmasiPembayaran as kirimKonfirmasi } from '@/services/billing'
+import { LABEL_STATUS, type Tenant } from '@/types/tenant'
 
 export function BillingPage() {
-  const { memuat, daftar, pesanGagal, pakaiDataTiruan, muatUlang } = useDaftarTenant()
+  // Daftar "menunggu konfirmasi" disusun dari status tenant, jadi sumbernya
+  // tetap /api/tenant — billing tidak punya endpoint khusus untuk itu.
+  const {
+    memuat: memuatTenant,
+    daftar: daftarTenant,
+    pesanGagal: gagalTenant,
+    muatUlang: muatUlangTenant,
+  } = useDaftarTenant()
 
-  // Hasil konfirmasi disimpan lokal karena endpoint pembayaran belum ada.
-  const [perubahanLokal, setPerubahanLokal] = useState<Record<string, Tenant>>({})
-  const [pembayaranBaru, setPembayaranBaru] = useState<Pembayaran[]>([])
+  const {
+    memuat: memuatBilling,
+    statusLangganan,
+    peringatan,
+    riwayat,
+    pesanGagal: gagalBilling,
+    muatUlang: muatUlangBilling,
+  } = useBilling()
+
+  const [menyimpan, setMenyimpan] = useState(false)
+  const [galatKonfirmasi, setGalatKonfirmasi] = useState<string | null>(null)
   const [pemberitahuan, setPemberitahuan] = useState<string | null>(null)
 
-  const daftarTampil = useMemo(
-    () => daftar.map((tenant) => perubahanLokal[tenant.id] ?? tenant),
-    [daftar, perubahanLokal],
-  )
+  const pesanGagal = gagalBilling ?? gagalTenant
 
-  const riwayat = useMemo(
-    () => [...pembayaranBaru, ...PEMBAYARAN_TIRUAN],
-    [pembayaranBaru],
-  )
+  function muatUlangSemua() {
+    muatUlangBilling()
+    muatUlangTenant()
+  }
 
-  function konfirmasiPembayaran(tenant: Tenant, isian: IsianPembayaran) {
-    const diperbarui = tenantSetelahKonfirmasi(tenant)
-    setPerubahanLokal((lama) => ({ ...lama, [tenant.id]: diperbarui }))
+  async function konfirmasiPembayaran(
+    tenant: Tenant,
+    isian: IsianPembayaran,
+  ): Promise<boolean> {
+    setMenyimpan(true)
+    setGalatKonfirmasi(null)
 
-    // Catat juga ke riwayat supaya hasilnya langsung terlihat.
-    setPembayaranBaru((lama) => [
-      {
-        id: `py-lokal-${tenant.id}-${lama.length}`,
+    try {
+      const hasil = await kirimKonfirmasi({
         tenantId: tenant.id,
-        namaBisnis: tenant.namaBisnis,
-        aplikasi: tenant.aplikasi,
         jumlah: isian.jumlah,
-        tanggalBayar: new Date().toISOString(),
         catatanAdmin: isian.catatanAdmin,
-      },
-      ...lama,
-    ])
+      })
 
-    setPemberitahuan(
-      `Pembayaran ${tenant.namaBisnis} sebesar ${formatRupiah(isian.jumlah)} dikonfirmasi. Status menjadi Aktif dan masa berlaku diperpanjang ${HARI_PERPANJANGAN} hari sampai ${formatTanggal(diperbarui.tanggalBerakhir)}. Perubahan ini belum tersimpan — endpoint pembayaran belum tersedia.`,
-    )
+      setPemberitahuan(
+        `Pembayaran ${hasil.pembayaran.namaBisnis} sebesar ${formatRupiah(hasil.pembayaran.jumlah)} dikonfirmasi. Status menjadi ${LABEL_STATUS[hasil.tenant.status]} dan masa berlakunya sampai ${formatTanggal(hasil.tenant.tanggalBerakhir)}.`,
+      )
+
+      // Ringkasan, peringatan, riwayat, dan status tenant semuanya berubah —
+      // ambil ulang dari server daripada menebak hasilnya di sini.
+      muatUlangSemua()
+      return true
+    } catch (err: unknown) {
+      setGalatKonfirmasi(
+        err instanceof Error ? err.message : 'Gagal menyimpan konfirmasi pembayaran',
+      )
+      return false
+    } finally {
+      setMenyimpan(false)
+    }
   }
 
   return (
@@ -67,9 +85,15 @@ export function BillingPage() {
         deskripsi="Pantau status langganan, konfirmasi pembayaran manual, dan lihat riwayatnya."
       />
 
-      {pakaiDataTiruan && <BannerDataTiruan />}
-
-      {pesanGagal && <KeadaanGagal pesan={pesanGagal} onCobaLagi={muatUlang} />}
+      {pesanGagal && (
+        <div className="mb-5">
+          <KeadaanGagal
+            judul="Gagal memuat data billing"
+            pesan={pesanGagal}
+            onCobaLagi={muatUlangSemua}
+          />
+        </div>
+      )}
 
       <AnimatePresence>
         {pemberitahuan && (
@@ -97,10 +121,12 @@ export function BillingPage() {
           judul="Ringkasan status langganan"
           deskripsi="Jumlah tenant berdasarkan masa trial, aktif, dan kedaluwarsa."
         >
-          {memuat ? (
+          {memuatBilling ? (
             <SeksiKosong pesan="Memuat ringkasan…" />
+          ) : statusLangganan ? (
+            <RingkasanLangganan ringkasan={statusLangganan} />
           ) : (
-            <RingkasanLangganan daftar={daftarTampil} />
+            <SeksiKosong pesan="Ringkasan tidak tersedia." />
           )}
         </KartuSeksi>
 
@@ -109,23 +135,35 @@ export function BillingPage() {
           deskripsi="Tenant trial dan kedaluwarsa yang akan jadi aktif setelah pembayarannya masuk."
           isiRapat
         >
-          {memuat ? (
+          {memuatTenant ? (
             <SeksiKosong pesan="Memuat daftar…" />
           ) : (
-            <KonfirmasiPembayaran daftar={daftarTampil} onKonfirmasi={konfirmasiPembayaran} />
+            <KonfirmasiPembayaran
+              daftar={daftarTenant}
+              sedangProses={menyimpan}
+              galat={galatKonfirmasi}
+              onKonfirmasi={konfirmasiPembayaran}
+              onTutupModal={() => setGalatKonfirmasi(null)}
+            />
           )}
         </KartuSeksi>
 
         <div className="grid gap-5 xl:grid-cols-2">
           <KartuSeksi
             judul="Masa aktif akan habis"
-            deskripsi={`Tenant yang berakhir dalam ${AMBANG_HARI} hari ke depan.`}
+            deskripsi={
+              peringatan
+                ? `Tenant yang berakhir dalam ${peringatan.ambangHari} hari ke depan.`
+                : 'Tenant yang masa aktifnya segera berakhir.'
+            }
             isiRapat
           >
-            {memuat ? (
+            {memuatBilling ? (
               <SeksiKosong pesan="Memuat peringatan…" />
+            ) : peringatan ? (
+              <DaftarPeringatan daftar={peringatan.daftar} ambangHari={peringatan.ambangHari} />
             ) : (
-              <DaftarPeringatan daftar={daftarTampil} />
+              <SeksiKosong pesan="Peringatan tidak tersedia." />
             )}
           </KartuSeksi>
 
@@ -133,13 +171,19 @@ export function BillingPage() {
             judul="Riwayat pembayaran"
             deskripsi="Pembayaran yang sudah dikonfirmasi super admin."
             aksi={
-              <span className="rounded-lg border border-hairline px-2.5 py-1 text-xs text-ink-muted tabular-nums">
-                {formatRupiah(totalNilaiPembayaran(riwayat))}
-              </span>
+              riwayat && (
+                <span className="rounded-lg border border-hairline px-2.5 py-1 text-xs text-ink-muted tabular-nums">
+                  {formatRupiah(riwayat.totalNilai)}
+                </span>
+              )
             }
             isiRapat
           >
-            <RiwayatPembayaran daftar={riwayat} />
+            {memuatBilling ? (
+              <SeksiKosong pesan="Memuat riwayat…" />
+            ) : (
+              <RiwayatPembayaran daftar={riwayat?.daftar ?? []} />
+            )}
           </KartuSeksi>
         </div>
       </motion.div>

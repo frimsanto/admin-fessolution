@@ -13,11 +13,7 @@ import { useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { BadgeStatus } from '@/components/ui/BadgeStatus'
-import {
-  BannerDataTiruan,
-  KeadaanGagal,
-  KerangkaDetail,
-} from '@/components/ui/KeadaanMuat'
+import { KeadaanGagal, KerangkaDetail } from '@/components/ui/KeadaanMuat'
 import { ModalKonfirmasi } from '@/components/ui/ModalKonfirmasi'
 import { useDetailTenant } from '@/hooks/useDetailTenant'
 import { formatTanggal, labelSisaHari, sisaHari } from '@/lib/format'
@@ -67,9 +63,9 @@ function warnaSisa(sisa: number): string {
   return 'text-ink'
 }
 
-function IsiDetail({ tenant, pakaiDataTiruan }: { tenant: Tenant; pakaiDataTiruan: boolean }) {
-  // Status disimpan lokal karena masih data tiruan — nanti diganti panggilan API
-  // pada task "Hubungkan aksi ubah status ke API".
+function IsiDetail({ tenant }: { tenant: Tenant }) {
+  // Cerminan status terakhir dari server, supaya header ikut berubah setelah
+  // aksi ubah status berhasil tanpa perlu memuat ulang halaman.
   const [status, setStatus] = useState<StatusTenant>(tenant.status)
   const [modalTerbuka, setModalTerbuka] = useState(false)
   const [pemberitahuan, setPemberitahuan] = useState<string | null>(null)
@@ -98,16 +94,6 @@ function IsiDetail({ tenant, pakaiDataTiruan }: { tenant: Tenant; pakaiDataTirua
       const diperbarui = await ubahStatusTenant(tenant.id, statusTujuan)
       selesaikanUbah(diperbarui.status)
     } catch (err: unknown) {
-      // Endpoint PATCH belum ada di backend — saat dev perubahan disimulasikan
-      // secara lokal, dan banner menyebutkannya terang-terangan.
-      if (import.meta.env.DEV) {
-        selesaikanUbah(
-          statusTujuan,
-          ' Perubahan belum benar-benar tersimpan: endpoint PATCH /api/tenant/:id/status belum tersedia.',
-        )
-        return
-      }
-
       setGalatUbah(err instanceof Error ? err.message : 'Gagal mengubah status tenant')
     } finally {
       setMenyimpan(false)
@@ -147,8 +133,6 @@ function IsiDetail({ tenant, pakaiDataTiruan }: { tenant: Tenant; pakaiDataTirua
           {labelAksi}
         </button>
       </header>
-
-      {pakaiDataTiruan && <BannerDataTiruan endpoint="GET /api/tenant/:id" />}
 
       <AnimatePresence>
         {pemberitahuan && (
@@ -285,8 +269,7 @@ function TenantTidakDitemukan({ id }: { id?: string }) {
 
 export function DetailTenantPage() {
   const { id } = useParams<{ id: string }>()
-  const { memuat, tenant, tidakDitemukan, pesanGagal, pakaiDataTiruan, muatUlang } =
-    useDetailTenant(id)
+  const { memuat, tenant, tidakDitemukan, pesanGagal, muatUlang } = useDetailTenant(id)
 
   if (memuat) {
     return (
@@ -301,7 +284,11 @@ export function DetailTenantPage() {
     return (
       <>
         <TautanKembali />
-        <KeadaanGagal pesan={pesanGagal} onCobaLagi={muatUlang} />
+        <KeadaanGagal
+          judul="Gagal memuat detail tenant"
+          pesan={pesanGagal}
+          onCobaLagi={muatUlang}
+        />
       </>
     )
   }
@@ -309,5 +296,5 @@ export function DetailTenantPage() {
   if (tidakDitemukan || !tenant) return <TenantTidakDitemukan id={id} />
 
   // `key` memastikan state status ikut ter-reset saat berpindah antar tenant.
-  return <IsiDetail key={tenant.id} tenant={tenant} pakaiDataTiruan={pakaiDataTiruan} />
+  return <IsiDetail key={tenant.id} tenant={tenant} />
 }
