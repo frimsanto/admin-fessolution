@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { Eye, EyeOff, Loader2, LogIn } from 'lucide-react'
 import { useState } from 'react'
 
-import { KREDENSIAL_TIRUAN } from '@/data/kredensial-tiruan'
+import { cocokKredensial, KREDENSIAL_TIRUAN } from '@/data/kredensial-tiruan'
 import { adaGalat, validasiLogin, type GalatLogin } from '@/lib/validasi-login'
 import type { IsianLogin } from '@/types/auth'
 
@@ -18,17 +18,30 @@ export function LoginPage() {
   const [passwordTampak, setPasswordTampak] = useState(false)
   const [galat, setGalat] = useState<GalatLogin>({})
   const [memproses, setMemproses] = useState(false)
+  /** Kredensial ditolak — pesannya sengaja tidak menyebut bagian mana yang salah. */
+  const [galatKredensial, setGalatKredensial] = useState<string | null>(null)
   const [catatan, setCatatan] = useState<string | null>(null)
 
   function masuk() {
     const isian: IsianLogin = { email: email.trim(), password }
+
+    setGalatKredensial(null)
+    setCatatan(null)
 
     const hasil = validasiLogin(isian)
     setGalat(hasil)
     if (adaGalat(hasil)) return
 
     setMemproses(true)
-    setCatatan('Autentikasi belum tersambung — endpoint login belum ada di backend.')
+
+    if (!cocokKredensial(isian)) {
+      setGalatKredensial('Email atau password salah.')
+      setPassword('')
+      setMemproses(false)
+      return
+    }
+
+    setCatatan('Kredensial cocok. Sesi belum disimpan — konteks auth menyusul di task berikutnya.')
     setMemproses(false)
   }
 
@@ -119,9 +132,18 @@ export function LoginPage() {
             </div>
           </div>
 
-          {catatan && (
+          {galatKredensial && (
             <p
               role="alert"
+              className="mt-4 rounded-lg border border-expired/30 bg-expired/10 px-3 py-2 text-sm text-expired"
+            >
+              {galatKredensial}
+            </p>
+          )}
+
+          {catatan && (
+            <p
+              role="status"
               className="mt-4 rounded-lg border border-suspended/30 bg-suspended/10 px-3 py-2 text-sm text-ink"
             >
               {catatan}

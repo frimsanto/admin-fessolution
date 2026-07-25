@@ -1,4 +1,4 @@
-import type { SuperAdmin } from '@/types/auth'
+import type { IsianLogin, SuperAdmin } from '@/types/auth'
 
 /**
  * Kredensial tiruan sementara — endpoint `POST /api/auth/login` belum ada di
@@ -15,4 +15,15 @@ export const KREDENSIAL_TIRUAN = {
 export const SUPER_ADMIN_TIRUAN: SuperAdmin = {
   id: '5e9b1c74-2a83-4f16-b0d9-7c4e8a1f2b60',
   email: KREDENSIAL_TIRUAN.email,
+}
+
+/**
+ * Pengganti sementara pemeriksaan kredensial di backend. Email tidak
+ * dibedakan huruf besar-kecil, password dibedakan — sama seperti nanti.
+ */
+export function cocokKredensial(isian: IsianLogin): boolean {
+  return (
+    isian.email.trim().toLowerCase() === KREDENSIAL_TIRUAN.email &&
+    isian.password === KREDENSIAL_TIRUAN.password
+  )
 }
