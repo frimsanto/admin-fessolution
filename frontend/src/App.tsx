@@ -6,6 +6,7 @@ import { DaftarAplikasiPage } from '@/pages/DaftarAplikasiPage'
 import { DaftarTenantPage } from '@/pages/DaftarTenantPage'
 import { DetailTenantPage } from '@/pages/DetailTenantPage'
 import { HalamanSegeraHadir } from '@/pages/HalamanSegeraHadir'
+import { StatistikAplikasiPage } from '@/pages/StatistikAplikasiPage'
 
 export default function App() {
   return (
@@ -24,16 +25,7 @@ export default function App() {
         <Route path="tenant" element={<DaftarTenantPage />} />
         <Route path="tenant/:id" element={<DetailTenantPage />} />
         <Route path="aplikasi" element={<DaftarAplikasiPage />} />
-        <Route
-          path="aplikasi/:slug/statistik"
-          element={
-            <HalamanSegeraHadir
-              judul="Statistik Aplikasi"
-              deskripsi="Ringkasan pendapatan dan tenant aktif untuk satu aplikasi."
-              catatan="Halamannya sedang dikerjakan di task berikutnya."
-            />
-          }
-        />
+        <Route path="aplikasi/:slug/statistik" element={<StatistikAplikasiPage />} />
         <Route path="billing" element={<BillingPage />} />
         <Route
           path="broadcast"
