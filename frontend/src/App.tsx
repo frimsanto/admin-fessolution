@@ -7,6 +7,7 @@ import { DaftarAplikasiPage } from '@/pages/DaftarAplikasiPage'
 import { DaftarTenantPage } from '@/pages/DaftarTenantPage'
 import { DetailTenantPage } from '@/pages/DetailTenantPage'
 import { HalamanSegeraHadir } from '@/pages/HalamanSegeraHadir'
+import { RiwayatPengumumanPage } from '@/pages/RiwayatPengumumanPage'
 import { StatistikAplikasiPage } from '@/pages/StatistikAplikasiPage'
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="aplikasi/:slug/statistik" element={<StatistikAplikasiPage />} />
         <Route path="billing" element={<BillingPage />} />
         <Route path="broadcast" element={<BroadcastPage />} />
+        <Route path="broadcast/riwayat" element={<RiwayatPengumumanPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

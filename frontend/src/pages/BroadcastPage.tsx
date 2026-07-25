@@ -1,10 +1,14 @@
 import { motion } from 'framer-motion'
+import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
+import { DaftarRiwayatPengumuman } from '@/components/broadcast/DaftarRiwayatPengumuman'
 import { FormPengumuman } from '@/components/broadcast/FormPengumuman'
 import { JudulHalaman } from '@/components/layout/JudulHalaman'
 import { KartuSeksi, SeksiKosong } from '@/components/ui/KartuSeksi'
 import { KeadaanGagal } from '@/components/ui/KeadaanMuat'
+import { PENGUMUMAN_TIRUAN } from '@/data/pengumuman-tiruan'
 import { useDaftarAplikasi } from '@/hooks/useDaftarAplikasi'
 import { varianDaftar } from '@/lib/motion'
 import type { IsianPengumuman } from '@/types/pengumuman'
@@ -76,10 +80,19 @@ export function BroadcastPage() {
 
         <KartuSeksi
           judul="Riwayat pengumuman"
-          deskripsi="Pengumuman yang sudah pernah dikirim super admin."
+          deskripsi="Pengumuman terakhir yang dikirim super admin."
+          aksi={
+            <Link
+              to="/broadcast/riwayat"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-hairline px-2.5 py-1 text-xs text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink"
+            >
+              Lihat semua
+              <ChevronRight className="size-3.5" aria-hidden="true" />
+            </Link>
+          }
           isiRapat
         >
-          <SeksiKosong pesan="Riwayat pengumuman belum dibuat." />
+          <DaftarRiwayatPengumuman daftar={PENGUMUMAN_TIRUAN} batas={3} />
         </KartuSeksi>
       </motion.div>
     </>
