@@ -2,14 +2,8 @@ import { Link } from 'react-router-dom'
 
 import { SeksiKosong } from '@/components/ui/KartuSeksi'
 import { formatRupiah, formatTanggal } from '@/lib/format'
+import { urutkanTerbaru } from '@/lib/pembayaran'
 import type { Pembayaran } from '@/types/pembayaran'
-
-/** Terbaru lebih dulu. */
-function urutkanTerbaru(daftar: Pembayaran[]): Pembayaran[] {
-  return [...daftar].sort(
-    (a, b) => new Date(b.tanggalBayar).getTime() - new Date(a.tanggalBayar).getTime(),
-  )
-}
 
 export function RiwayatPembayaran({ daftar }: { daftar: Pembayaran[] }) {
   if (daftar.length === 0) {
@@ -50,8 +44,4 @@ export function RiwayatPembayaran({ daftar }: { daftar: Pembayaran[] }) {
       ))}
     </ul>
   )
-}
-
-export function totalNilaiPembayaran(daftar: Pembayaran[]): number {
-  return daftar.reduce((jumlah, bayar) => jumlah + bayar.jumlah, 0)
 }
