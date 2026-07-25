@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppShell } from '@/components/layout/AppShell'
 import { BillingPage } from '@/pages/BillingPage'
+import { BroadcastPage } from '@/pages/BroadcastPage'
 import { DaftarAplikasiPage } from '@/pages/DaftarAplikasiPage'
 import { DaftarTenantPage } from '@/pages/DaftarTenantPage'
 import { DetailTenantPage } from '@/pages/DetailTenantPage'
@@ -27,15 +28,7 @@ export default function App() {
         <Route path="aplikasi" element={<DaftarAplikasiPage />} />
         <Route path="aplikasi/:slug/statistik" element={<StatistikAplikasiPage />} />
         <Route path="billing" element={<BillingPage />} />
-        <Route
-          path="broadcast"
-          element={
-            <HalamanSegeraHadir
-              judul="Notifikasi & Broadcast"
-              deskripsi="Kirim pengumuman ke seluruh tenant atau per aplikasi."
-            />
-          }
-        />
+        <Route path="broadcast" element={<BroadcastPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
