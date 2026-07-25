@@ -3,7 +3,6 @@ import { Eye, EyeOff, Loader2, LogIn } from 'lucide-react'
 import { useState } from 'react'
 
 import { useAuth } from '@/context/auth-context'
-import { KREDENSIAL_TIRUAN } from '@/data/kredensial-tiruan'
 import { adaGalat, validasiLogin, type GalatLogin } from '@/lib/validasi-login'
 import type { IsianLogin } from '@/types/auth'
 
@@ -11,7 +10,7 @@ import type { IsianLogin } from '@/types/auth'
  * Halaman masuk super admin. Berdiri di luar AppShell — tanpa sidebar, karena
  * belum ada yang boleh dibuka sebelum masuk.
  *
- * Pemeriksaan kredensial dan penyimpanan sesi menyusul di task berikutnya.
+ * Kredensial diperiksa `POST /api/auth/login`; tokennya disimpan AuthProvider.
  */
 export function LoginPage() {
   const { masuk: masukkanSesi } = useAuth()
@@ -24,7 +23,7 @@ export function LoginPage() {
   /** Kredensial ditolak — pesannya sengaja tidak menyebut bagian mana yang salah. */
   const [galatKredensial, setGalatKredensial] = useState<string | null>(null)
 
-  function masuk() {
+  async function masuk() {
     const isian: IsianLogin = { email: email.trim(), password }
 
     setGalatKredensial(null)
@@ -35,7 +34,7 @@ export function LoginPage() {
 
     setMemproses(true)
 
-    const ditolak = masukkanSesi(isian)
+    const ditolak = await masukkanSesi(isian)
     if (ditolak) {
       setGalatKredensial(ditolak)
       setPassword('')
@@ -68,7 +67,7 @@ export function LoginPage() {
         <form
           onSubmit={(e) => {
             e.preventDefault()
-            masuk()
+            void masuk()
           }}
           className="rounded-2xl border border-hairline bg-surface p-6"
         >
@@ -156,17 +155,6 @@ export function LoginPage() {
             {memproses ? 'Memeriksa…' : 'Masuk'}
           </button>
         </form>
-
-        {/* Jalan masuk sementara selama endpoint login belum ada. */}
-        <div className="mt-4 rounded-xl border border-hairline bg-elevated/40 px-4 py-3 text-xs text-ink-faint">
-          <p className="font-medium text-ink-muted">Kredensial sementara</p>
-          <p className="mt-1 font-mono">{KREDENSIAL_TIRUAN.email}</p>
-          <p className="font-mono">{KREDENSIAL_TIRUAN.password}</p>
-          <p className="mt-2">
-            Dipakai selama endpoint login backend belum tersedia, dan dihapus setelah
-            autentikasi asli tersambung.
-          </p>
-        </div>
       </motion.div>
     </div>
   )

@@ -36,8 +36,9 @@ export function Sidebar() {
   const { sudahMasuk, admin, keluar } = useAuth()
   const navigate = useNavigate()
 
-  function keluarDariPanel() {
-    keluar()
+  async function keluarDariPanel() {
+    // Tokennya dibatalkan di server dulu, baru sesinya dibuang di sini.
+    await keluar()
     navigate('/login', { replace: true })
   }
 
@@ -91,7 +92,7 @@ export function Sidebar() {
       {sudahMasuk && (
         <button
           type="button"
-          onClick={keluarDariPanel}
+          onClick={() => void keluarDariPanel()}
           aria-label="Keluar"
           // mt-auto menempelkan tombol keluar ke dasar sidebar, jauh dari navigasi.
           className="group relative mt-auto grid size-11 shrink-0 place-items-center rounded-xl transition-colors hover:bg-expired/10"

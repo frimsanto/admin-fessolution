@@ -12,5 +12,12 @@ export type IsianLogin = {
  */
 export type SuperAdmin = {
   id: string
+  nama: string
   email: string
+}
+
+/** Balasan `POST /api/auth/login`. */
+export type HasilLogin = {
+  token: string
+  admin: SuperAdmin
 }

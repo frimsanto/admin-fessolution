@@ -7,8 +7,15 @@ export type NilaiAuth = {
   admin: SuperAdmin | null
   sudahMasuk: boolean
   /** Mengembalikan null kalau berhasil, atau pesan galat kalau kredensial ditolak. */
-  masuk: (isian: IsianLogin) => string | null
-  keluar: () => void
+  masuk: (isian: IsianLogin) => Promise<string | null>
+  /** Membatalkan token di server lalu membuang sesi lokal. */
+  keluar: () => Promise<void>
+  /**
+   * Buang sesi lokal saja, tanpa memanggil server. Dipakai saat server sudah
+   * menolak tokennya (401) — memanggil logout di situ percuma dan malah
+   * memicu 401 berikutnya.
+   */
+  buangSesi: () => void
 }
 
 export const KonteksAuth = createContext<NilaiAuth | null>(null)

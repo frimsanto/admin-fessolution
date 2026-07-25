@@ -12,7 +12,7 @@ import { pasangPenanganSesiBerakhir } from '@/lib/api'
  * Tidak menggambar apa pun — dipasang sekali di dalam router.
  */
 export function InterceptorSesi() {
-  const { keluar } = useAuth()
+  const { buangSesi } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -25,12 +25,12 @@ export function InterceptorSesi() {
       // bukan sesi habis. Jangan dialihkan supaya tidak berputar.
       if (sekarang === '/login') return
 
-      keluar()
+      buangSesi()
       navigate('/login', { replace: true, state: { dari: sekarang } })
     })
 
     return () => pasangPenanganSesiBerakhir(null)
-  }, [keluar, navigate])
+  }, [buangSesi, navigate])
 
   return null
 }
