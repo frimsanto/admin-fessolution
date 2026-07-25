@@ -8,9 +8,9 @@ type Props = {
 
 export function JudulHalaman({ judul, deskripsi, aksi }: Props) {
   return (
-    <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <header className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink">{judul}</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">{judul}</h1>
         {deskripsi && <p className="mt-1.5 text-sm text-ink-muted">{deskripsi}</p>}
       </div>
       {aksi}

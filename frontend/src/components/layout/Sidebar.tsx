@@ -29,7 +29,7 @@ export function Sidebar() {
   return (
     <nav
       aria-label="Navigasi utama"
-      className="fixed inset-y-0 left-0 z-40 flex w-[60px] flex-col items-center gap-1 border-r border-hairline bg-surface/80 py-4 backdrop-blur-xl"
+      className="fixed inset-y-0 left-0 z-40 flex w-15 flex-col items-center gap-1 overflow-y-auto border-r border-hairline bg-surface/80 py-4 backdrop-blur-xl"
     >
       <div
         className="mb-4 grid size-9 shrink-0 place-items-center rounded-xl bg-accent text-sm font-bold text-white shadow-lg shadow-accent/25"
@@ -58,7 +58,7 @@ export function Sidebar() {
 
               <Ikon
                 aria-hidden="true"
-                className={`relative size-[18px] transition-colors ${
+                className={`relative size-4.5 transition-colors ${
                   isActive
                     ? 'text-accent-bright'
                     : 'text-ink-faint group-hover:text-ink'

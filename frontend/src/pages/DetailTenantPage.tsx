@@ -137,7 +137,7 @@ function IsiDetail({ tenant, pakaiDataTiruan }: { tenant: Tenant; pakaiDataTirua
         <button
           type="button"
           onClick={() => setModalTerbuka(true)}
-          className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+          className={`inline-flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors sm:w-auto ${
             akanDitangguhkan
               ? 'border-hairline text-ink-muted hover:border-expired/40 hover:bg-expired/10 hover:text-expired'
               : 'border-accent/40 bg-accent-soft text-accent-bright hover:bg-accent/25'

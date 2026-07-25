@@ -9,13 +9,6 @@ import type { Tenant } from '@/types/tenant'
 
 const KOLOM = ['Bisnis', 'Aplikasi', 'Status', 'Bergabung', 'Masa berlaku']
 
-function warnaSisaHari(tanggalBerakhir: string): string {
-  const sisa = sisaHari(tanggalBerakhir)
-  if (sisa < 0) return 'text-expired'
-  if (sisa <= 7) return 'text-suspended'
-  return 'text-ink-faint'
-}
-
 type Props = {
   daftar: Tenant[]
   /** Ganti nilainya untuk memutar ulang animasi munculnya baris (mis. saat filter berubah). */
@@ -28,22 +21,27 @@ const KOSONG_BAWAAN = {
   detail: 'Tenant akan muncul di sini begitu ada yang mendaftar ke salah satu aplikasi.',
 }
 
-export function TabelTenant({ daftar, kunciAnimasi, pesanKosong }: Props) {
-  if (daftar.length === 0) {
-    const { judul, detail } = pesanKosong ?? KOSONG_BAWAAN
+function warnaSisaHari(tanggalBerakhir: string): string {
+  const sisa = sisaHari(tanggalBerakhir)
+  if (sisa < 0) return 'text-expired'
+  if (sisa <= 7) return 'text-suspended'
+  return 'text-ink-faint'
+}
 
-    return (
-      <div className="rounded-2xl border border-hairline bg-surface px-6 py-16 text-center">
-        <p className="text-sm font-medium text-ink">{judul}</p>
-        <p className="mx-auto mt-1 max-w-md text-sm text-ink-faint">{detail}</p>
-      </div>
-    )
-  }
-
+function ChipAplikasi({ nama }: { nama: string }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-hairline bg-surface">
+    <span className="inline-flex items-center rounded-md border border-hairline-strong bg-elevated px-2 py-1 text-xs font-medium text-ink-muted">
+      {nama}
+    </span>
+  )
+}
+
+/** Tampilan tabel — dipakai mulai layar lebar (lg). */
+function TampilanTabel({ daftar, kunciAnimasi }: { daftar: Tenant[]; kunciAnimasi?: string }) {
+  return (
+    <div className="hidden overflow-hidden rounded-2xl border border-hairline bg-surface lg:block">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-208 border-collapse text-left text-sm">
+        <table className="w-full min-w-3xl border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-hairline">
               {KOLOM.map((kolom) => (
@@ -79,9 +77,7 @@ export function TabelTenant({ daftar, kunciAnimasi, pesanKosong }: Props) {
                 </td>
 
                 <td className="px-5 py-4">
-                  <span className="inline-flex items-center rounded-md border border-hairline-strong bg-elevated px-2 py-1 text-xs font-medium text-ink-muted">
-                    {tenant.aplikasi.nama}
-                  </span>
+                  <ChipAplikasi nama={tenant.aplikasi.nama} />
                 </td>
 
                 <td className="px-5 py-4">
@@ -116,5 +112,79 @@ export function TabelTenant({ daftar, kunciAnimasi, pesanKosong }: Props) {
         </table>
       </div>
     </div>
+  )
+}
+
+/** Tampilan kartu — dipakai di layar sempit supaya tidak perlu geser ke samping. */
+function TampilanKartu({ daftar, kunciAnimasi }: { daftar: Tenant[]; kunciAnimasi?: string }) {
+  return (
+    <motion.ul
+      key={kunciAnimasi}
+      variants={varianDaftar}
+      initial="awal"
+      animate="tampil"
+      className="grid gap-3 sm:grid-cols-2 lg:hidden"
+    >
+      {daftar.map((tenant) => (
+        <motion.li
+          key={tenant.id}
+          variants={varianItem}
+          className="rounded-2xl border border-hairline bg-surface p-4 transition-colors hover:bg-surface-hover"
+        >
+          <Link to={`/tenant/${tenant.id}`} className="block">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="truncate font-medium text-ink">{tenant.namaBisnis}</div>
+                <div className="mt-0.5 truncate text-xs text-ink-faint">{tenant.emailPemilik}</div>
+              </div>
+              <ChevronRight className="mt-0.5 size-4 shrink-0 text-ink-faint" aria-hidden="true" />
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <BadgeStatus status={tenant.status} />
+              <ChipAplikasi nama={tenant.aplikasi.nama} />
+            </div>
+
+            <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-hairline pt-3 text-xs">
+              <div>
+                <dt className="text-ink-faint">Bergabung</dt>
+                <dd className="mt-0.5 text-ink-muted tabular-nums">
+                  {formatTanggal(tenant.tanggalDaftar)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-ink-faint">Masa berlaku</dt>
+                <dd className="mt-0.5 text-ink-muted tabular-nums">
+                  {formatTanggal(tenant.tanggalBerakhir)}
+                </dd>
+                <dd className={`mt-0.5 ${warnaSisaHari(tenant.tanggalBerakhir)}`}>
+                  {labelSisaHari(tenant.tanggalBerakhir)}
+                </dd>
+              </div>
+            </dl>
+          </Link>
+        </motion.li>
+      ))}
+    </motion.ul>
+  )
+}
+
+export function TabelTenant({ daftar, kunciAnimasi, pesanKosong }: Props) {
+  if (daftar.length === 0) {
+    const { judul, detail } = pesanKosong ?? KOSONG_BAWAAN
+
+    return (
+      <div className="rounded-2xl border border-hairline bg-surface px-6 py-16 text-center">
+        <p className="text-sm font-medium text-ink">{judul}</p>
+        <p className="mx-auto mt-1 max-w-md text-sm text-ink-faint">{detail}</p>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <TampilanTabel daftar={daftar} kunciAnimasi={kunciAnimasi} />
+      <TampilanKartu daftar={daftar} kunciAnimasi={kunciAnimasi} />
+    </>
   )
 }

@@ -70,7 +70,7 @@ export function FilterTenant({ semuaTenant, nilai, onUbah }: Props) {
     >
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter aplikasi">
-          <span className="w-16 shrink-0 text-xs font-medium tracking-wide text-ink-faint uppercase">
+          <span className="w-full text-xs font-medium tracking-wide text-ink-faint uppercase sm:w-16 sm:shrink-0">
             Aplikasi
           </span>
 
@@ -95,7 +95,7 @@ export function FilterTenant({ semuaTenant, nilai, onUbah }: Props) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter status">
-          <span className="w-16 shrink-0 text-xs font-medium tracking-wide text-ink-faint uppercase">
+          <span className="w-full text-xs font-medium tracking-wide text-ink-faint uppercase sm:w-16 sm:shrink-0">
             Status
           </span>
 
