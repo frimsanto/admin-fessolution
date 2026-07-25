@@ -2,10 +2,16 @@ import { motion } from 'framer-motion'
 
 import { DaftarPeringatan } from '@/components/billing/DaftarPeringatan'
 import { RingkasanLangganan } from '@/components/billing/RingkasanLangganan'
+import {
+  RiwayatPembayaran,
+  totalNilaiPembayaran,
+} from '@/components/billing/RiwayatPembayaran'
 import { JudulHalaman } from '@/components/layout/JudulHalaman'
 import { KartuSeksi, SeksiKosong } from '@/components/ui/KartuSeksi'
 import { BannerDataTiruan, KeadaanGagal } from '@/components/ui/KeadaanMuat'
+import { PEMBAYARAN_TIRUAN } from '@/data/pembayaran-tiruan'
 import { useDaftarTenant } from '@/hooks/useDaftarTenant'
+import { formatRupiah } from '@/lib/format'
 import { varianDaftar } from '@/lib/motion'
 import { AMBANG_HARI } from '@/lib/peringatan-masa-aktif'
 
@@ -56,9 +62,14 @@ export function BillingPage() {
           <KartuSeksi
             judul="Riwayat pembayaran"
             deskripsi="Pembayaran yang sudah dikonfirmasi super admin."
+            aksi={
+              <span className="rounded-lg border border-hairline px-2.5 py-1 text-xs text-ink-muted tabular-nums">
+                {formatRupiah(totalNilaiPembayaran(PEMBAYARAN_TIRUAN))}
+              </span>
+            }
             isiRapat
           >
-            <SeksiKosong pesan="Riwayat pembayaran belum tersedia." />
+            <RiwayatPembayaran daftar={PEMBAYARAN_TIRUAN} />
           </KartuSeksi>
         </div>
       </motion.div>
