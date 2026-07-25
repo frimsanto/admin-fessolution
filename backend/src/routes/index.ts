@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import aplikasiRoutes from '../modules/aplikasi/aplikasi.routes.js'
 import billingRoutes from '../modules/billing/billing.routes.js'
 import dashboardRoutes from '../modules/dashboard/dashboard.routes.js'
 import tenantRoutes from '../modules/tenant/tenant.routes.js';
@@ -12,6 +13,7 @@ router.get('/health', (_req, res) => {
 
 router.use('/dashboard', dashboardRoutes)
 router.use('/tenant', tenantRoutes)
-router.use('/billing', billingRoutes);
+router.use('/billing', billingRoutes)
+router.use('/apps', aplikasiRoutes);
 
 export default router;

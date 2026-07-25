@@ -14,7 +14,7 @@ export type Aplikasi = {
   dibuatPada: string
 }
 
-/** Bentuk respons `GET /api/aplikasi` yang diasumsikan halaman ini. */
+/** Bentuk respons `GET /api/apps`. */
 export type DaftarAplikasiResponse = {
   total: number
   berjalan: number

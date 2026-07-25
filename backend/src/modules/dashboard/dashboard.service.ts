@@ -1,6 +1,15 @@
 import { prisma } from '../../lib/prisma.js';
 import { TenantStatus } from '../../generated/prisma/enums.js';
 import { awalBulanWib, tambahHari } from '../../utils/tanggal.js';
+import {
+  ambilDaftarAplikasi,
+  type DaftarAplikasi,
+} from '../aplikasi/aplikasi.service.js';
+
+// Daftar aplikasi dipakai bersama dengan endpoint /api/apps — sumbernya satu di
+// modul aplikasi supaya angkanya tidak pernah berbeda antar halaman.
+export { ambilDaftarAplikasi };
+export type { AplikasiDto, DaftarAplikasi } from '../aplikasi/aplikasi.service.js';
 
 export type StatistikTenantPerAplikasi = {
   appId: string;
@@ -115,73 +124,6 @@ export async function ambilStatistikTenant(sekarang: Date = new Date()): Promise
     baruBulanIni,
     akanExpired7Hari,
     perAplikasi,
-  };
-}
-
-export type RingkasanAplikasi = {
-  appId: string;
-  nama: string;
-  slug: string;
-  /** true = aplikasi sedang berjalan (status global aktif). */
-  aktif: boolean;
-  jumlahTenant: number;
-  jumlahTenantAktif: number;
-  dibuatPada: string;
-};
-
-export type DaftarAplikasi = {
-  total: number;
-  berjalan: number;
-  nonaktif: number;
-  daftar: RingkasanAplikasi[];
-};
-
-/**
- * Daftar aplikasi SaaS yang dikelola platform untuk Dashboard Overview:
- * aplikasi mana yang sedang berjalan beserta jumlah tenant-nya.
- * Aplikasi yang berjalan ditampilkan lebih dulu.
- */
-export async function ambilDaftarAplikasi(): Promise<DaftarAplikasi> {
-  const [aplikasi, tenantAktifPerAplikasi] = await Promise.all([
-    prisma.app.findMany({
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        status: true,
-        createdAt: true,
-        _count: { select: { tenants: true } },
-      },
-      orderBy: [{ status: 'desc' }, { name: 'asc' }],
-    }),
-    prisma.tenant.groupBy({
-      by: ['appId'],
-      where: { status: TenantStatus.AKTIF },
-      _count: { _all: true },
-    }),
-  ]);
-
-  const jumlahAktifPerAplikasi = new Map<string, number>(
-    tenantAktifPerAplikasi.map((baris) => [baris.appId, baris._count._all]),
-  );
-
-  const daftar: RingkasanAplikasi[] = aplikasi.map((item) => ({
-    appId: item.id,
-    nama: item.name,
-    slug: item.slug,
-    aktif: item.status,
-    jumlahTenant: item._count.tenants,
-    jumlahTenantAktif: jumlahAktifPerAplikasi.get(item.id) ?? 0,
-    dibuatPada: item.createdAt.toISOString(),
-  }));
-
-  const berjalan = daftar.filter((item) => item.aktif).length;
-
-  return {
-    total: daftar.length,
-    berjalan,
-    nonaktif: daftar.length - berjalan,
-    daftar,
   };
 }
 
