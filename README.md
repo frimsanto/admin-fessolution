@@ -35,5 +35,6 @@ Perintah lain: `npm run build` (prisma generate + tsc), `npm start` (jalankan `d
 | Method | Path | Keterangan |
 | --- | --- | --- |
 | GET | `/api/health` | Cek API hidup |
-| GET | `/api/dashboard/ringkasan` | Ringkasan Dashboard Overview |
+| GET | `/api/dashboard/ringkasan` | Ringkasan Dashboard Overview (blok `tenant` + `aplikasi`) |
 | GET | `/api/dashboard/statistik-tenant` | Statistik tenant (total, per status, baru bulan ini, akan expired 7 hari, per aplikasi) |
+| GET | `/api/dashboard/daftar-aplikasi` | Daftar aplikasi SaaS: total, jumlah berjalan/nonaktif, dan jumlah tenant per aplikasi |
