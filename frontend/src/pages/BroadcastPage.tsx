@@ -8,9 +8,10 @@ import { FormPengumuman } from '@/components/broadcast/FormPengumuman'
 import { JudulHalaman } from '@/components/layout/JudulHalaman'
 import { KartuSeksi, SeksiKosong } from '@/components/ui/KartuSeksi'
 import { KeadaanGagal } from '@/components/ui/KeadaanMuat'
-import { PENGUMUMAN_TIRUAN } from '@/data/pengumuman-tiruan'
+import { usePengumuman } from '@/context/pengumuman-context'
 import { useDaftarAplikasi } from '@/hooks/useDaftarAplikasi'
 import { varianDaftar } from '@/lib/motion'
+import { labelSasaran } from '@/lib/pengumuman'
 import type { IsianPengumuman } from '@/types/pengumuman'
 
 /**
@@ -24,6 +25,7 @@ export function BroadcastPage() {
   // Sasaran pengumuman diambil dari daftar aplikasi yang sebenarnya — endpoint
   // /api/apps sudah tersedia, jadi tidak perlu data tiruan di sini.
   const { memuat, daftar, pesanGagal, muatUlang } = useDaftarAplikasi()
+  const { daftar: riwayat, kirim } = usePengumuman()
 
   const [pemberitahuan, setPemberitahuan] = useState<string | null>(null)
   // Ganti key = formulir dipasang ulang, jadi isiannya bersih setelah terkirim.
@@ -32,14 +34,19 @@ export function BroadcastPage() {
   function kirimPengumuman(isian: IsianPengumuman) {
     const aplikasi = daftar.find((item) => item.appId === isian.appId)
 
-    const sasaran = isian.appId === null ? 'semua aplikasi' : (aplikasi?.nama ?? 'aplikasi terpilih')
     const penerima =
       isian.appId === null
         ? daftar.reduce((jumlah, item) => jumlah + item.jumlahTenant, 0)
         : (aplikasi?.jumlahTenant ?? 0)
 
+    // Aplikasi lengkap (nama + slug) dibutuhkan riwayat; formulir hanya tahu id.
+    const terkirim = kirim(
+      isian,
+      aplikasi ? { appId: aplikasi.appId, nama: aplikasi.nama, slug: aplikasi.slug } : null,
+    )
+
     setPemberitahuan(
-      `Pengumuman "${isian.judul}" dikirim ke ${sasaran} — ${penerima} tenant. Belum benar-benar tersimpan: endpoint broadcast belum tersedia di backend.`,
+      `Pengumuman "${terkirim.judul}" dikirim ke ${labelSasaran(terkirim)} — ${penerima} tenant. Belum benar-benar tersimpan: endpoint broadcast belum tersedia di backend.`,
     )
     setKunciForm((n) => n + 1)
   }
@@ -109,7 +116,7 @@ export function BroadcastPage() {
           }
           isiRapat
         >
-          <DaftarRiwayatPengumuman daftar={PENGUMUMAN_TIRUAN} batas={3} />
+          <DaftarRiwayatPengumuman daftar={riwayat} batas={3} />
         </KartuSeksi>
       </motion.div>
     </>

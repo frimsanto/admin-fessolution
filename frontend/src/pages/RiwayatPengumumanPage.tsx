@@ -5,16 +5,16 @@ import { Link } from 'react-router-dom'
 import { DaftarRiwayatPengumuman } from '@/components/broadcast/DaftarRiwayatPengumuman'
 import { JudulHalaman } from '@/components/layout/JudulHalaman'
 import { KartuSeksi } from '@/components/ui/KartuSeksi'
-import { PENGUMUMAN_TIRUAN } from '@/data/pengumuman-tiruan'
+import { usePengumuman } from '@/context/pengumuman-context'
 import { varianDaftar } from '@/lib/motion'
 
 /**
- * Riwayat lengkap pengumuman yang pernah dikirim.
- *
- * Masih memakai data tiruan: endpoint riwayat broadcast belum ada di backend.
+ * Riwayat lengkap pengumuman yang pernah dikirim, termasuk yang baru dikirim
+ * pada sesi ini. Sumbernya masih state di memori — endpoint riwayat broadcast
+ * belum ada di backend.
  */
 export function RiwayatPengumumanPage() {
-  const daftar = PENGUMUMAN_TIRUAN
+  const { daftar } = usePengumuman()
 
   return (
     <>
