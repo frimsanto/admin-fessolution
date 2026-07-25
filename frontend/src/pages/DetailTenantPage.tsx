@@ -13,8 +13,13 @@ import { useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { BadgeStatus } from '@/components/ui/BadgeStatus'
+import {
+  BannerDataTiruan,
+  KeadaanGagal,
+  KerangkaDetail,
+} from '@/components/ui/KeadaanMuat'
 import { ModalKonfirmasi } from '@/components/ui/ModalKonfirmasi'
-import { TENANT_TIRUAN } from '@/data/tenant-tiruan'
+import { useDetailTenant } from '@/hooks/useDetailTenant'
 import { formatTanggal, labelSisaHari, sisaHari } from '@/lib/format'
 import { varianDaftar, varianItem } from '@/lib/motion'
 import {
@@ -61,7 +66,7 @@ function warnaSisa(sisa: number): string {
   return 'text-ink'
 }
 
-function IsiDetail({ tenant }: { tenant: Tenant }) {
+function IsiDetail({ tenant, pakaiDataTiruan }: { tenant: Tenant; pakaiDataTiruan: boolean }) {
   // Status disimpan lokal karena masih data tiruan — nanti diganti panggilan API
   // pada task "Hubungkan aksi ubah status ke API".
   const [status, setStatus] = useState<StatusTenant>(tenant.status)
@@ -110,6 +115,8 @@ function IsiDetail({ tenant }: { tenant: Tenant }) {
           {labelAksi}
         </button>
       </header>
+
+      {pakaiDataTiruan && <BannerDataTiruan endpoint="GET /api/tenant/:id" />}
 
       <AnimatePresence>
         {pemberitahuan && (
@@ -244,12 +251,29 @@ function TenantTidakDitemukan({ id }: { id?: string }) {
 
 export function DetailTenantPage() {
   const { id } = useParams<{ id: string }>()
+  const { memuat, tenant, tidakDitemukan, pesanGagal, pakaiDataTiruan, muatUlang } =
+    useDetailTenant(id)
 
-  // Data tiruan — diganti panggilan API pada task "Hubungkan halaman detail tenant ke API".
-  const tenant = TENANT_TIRUAN.find((item) => item.id === id)
+  if (memuat) {
+    return (
+      <>
+        <TautanKembali />
+        <KerangkaDetail />
+      </>
+    )
+  }
 
-  if (!tenant) return <TenantTidakDitemukan id={id} />
+  if (pesanGagal) {
+    return (
+      <>
+        <TautanKembali />
+        <KeadaanGagal pesan={pesanGagal} onCobaLagi={muatUlang} />
+      </>
+    )
+  }
+
+  if (tidakDitemukan || !tenant) return <TenantTidakDitemukan id={id} />
 
   // `key` memastikan state status ikut ter-reset saat berpindah antar tenant.
-  return <IsiDetail key={tenant.id} tenant={tenant} />
+  return <IsiDetail key={tenant.id} tenant={tenant} pakaiDataTiruan={pakaiDataTiruan} />
 }

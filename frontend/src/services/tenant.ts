@@ -1,5 +1,5 @@
 import { apiGet } from '@/lib/api'
-import type { DaftarTenantResponse } from '@/types/tenant'
+import type { DaftarTenantResponse, Tenant } from '@/types/tenant'
 
 /**
  * Kontrak yang diasumsikan halaman ini (belum ada di backend):
@@ -11,4 +11,14 @@ import type { DaftarTenantResponse } from '@/types/tenant'
  */
 export function ambilDaftarTenant(signal?: AbortSignal): Promise<DaftarTenantResponse> {
   return apiGet<DaftarTenantResponse>('/tenant', signal)
+}
+
+/**
+ * Kontrak yang diasumsikan (belum ada di backend):
+ *
+ *   GET /api/tenant/:id
+ *   → { success, message, data: Tenant }   — 404 kalau tenant tidak ada
+ */
+export function ambilDetailTenant(id: string, signal?: AbortSignal): Promise<Tenant> {
+  return apiGet<Tenant>(`/tenant/${encodeURIComponent(id)}`, signal)
 }

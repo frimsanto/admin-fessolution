@@ -27,6 +27,36 @@ export function KerangkaTabel({ baris = 6 }: { baris?: number }) {
   )
 }
 
+/** Kerangka halaman detail selagi data dimuat. */
+export function KerangkaDetail() {
+  return (
+    <div role="status" aria-label="Memuat data">
+      <div className="mb-8 space-y-3">
+        <div className="h-7 w-64 animate-pulse rounded bg-white/8" />
+        <div className="h-3.5 w-80 animate-pulse rounded bg-white/5" />
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
+        {[0, 1].map((i) => (
+          <div key={i} className="rounded-2xl border border-hairline bg-surface p-5">
+            <div className="mb-5 h-3 w-32 animate-pulse rounded bg-white/6" />
+            <div className="space-y-4">
+              {[0, 1, 2].map((j) => (
+                <div key={j} className="space-y-2">
+                  <div className="h-2.5 w-24 animate-pulse rounded bg-white/5" />
+                  <div className="h-3.5 w-44 animate-pulse rounded bg-white/8" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <span className="sr-only">Memuat detail tenant…</span>
+    </div>
+  )
+}
+
 export function KeadaanGagal({ pesan, onCobaLagi }: { pesan: string; onCobaLagi: () => void }) {
   return (
     <div className="rounded-2xl border border-expired/25 bg-expired/5 px-6 py-14 text-center">
@@ -48,7 +78,7 @@ export function KeadaanGagal({ pesan, onCobaLagi }: { pesan: string; onCobaLagi:
   )
 }
 
-export function BannerDataTiruan() {
+export function BannerDataTiruan({ endpoint = 'GET /api/tenant' }: { endpoint?: string }) {
   return (
     <div
       role="status"
@@ -56,8 +86,8 @@ export function BannerDataTiruan() {
     >
       <span className="font-medium">Menampilkan data tiruan.</span>{' '}
       <span className="text-ink-muted">
-        Endpoint <code className="font-mono text-xs">GET /api/tenant</code> belum tersedia di
-        backend, jadi halaman ini memakai contoh data selama pengembangan.
+        Endpoint <code className="font-mono text-xs">{endpoint}</code> belum tersedia di backend,
+        jadi halaman ini memakai contoh data selama pengembangan.
       </span>
     </div>
   )
