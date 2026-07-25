@@ -6,6 +6,7 @@ import { uuidSah } from '../../utils/uuid.js'
 import {
   adalahGagal,
   ambilDaftarAplikasi,
+  ambilStatistikAplikasi,
   buatAplikasi,
   POLA_SLUG,
   toggleStatusAplikasi,
@@ -62,6 +63,21 @@ export async function postAplikasi(req: Request, res: Response): Promise<void> {
   }
 
   kirimSukses(res, hasil, `Aplikasi ${hasil.nama} berhasil ditambahkan`, 201)
+}
+
+/** GET /api/apps/:id/stats — `:id` boleh UUID maupun slug aplikasi. */
+export async function getStatistikAplikasi(req: Request, res: Response): Promise<void> {
+  const { id } = req.params
+  if (!id || id.trim() === '') {
+    throw new AppError('Aplikasi tidak ditemukan', 404)
+  }
+
+  const statistik = await ambilStatistikAplikasi(id.trim())
+  if (!statistik) {
+    throw new AppError('Aplikasi tidak ditemukan', 404)
+  }
+
+  kirimSukses(res, statistik, `Statistik ${statistik.aplikasi.nama} berhasil diambil`)
 }
 
 /** PUT /api/apps/:id/toggle */

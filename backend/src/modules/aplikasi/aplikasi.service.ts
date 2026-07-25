@@ -1,5 +1,6 @@
 import { TenantStatus } from '../../generated/prisma/enums.js'
 import { prisma } from '../../lib/prisma.js'
+import { uuidSah } from '../../utils/uuid.js'
 
 export type AplikasiDto = {
   appId: string
@@ -168,6 +169,73 @@ async function ambilSatuAplikasi(id: string): Promise<AplikasiDto | null> {
     jumlahTenant: aplikasi._count.tenants,
     jumlahTenantAktif: jumlahAktif,
     dibuatPada: aplikasi.createdAt.toISOString(),
+  }
+}
+
+export type StatistikAplikasi = {
+  aplikasi: AplikasiDto
+  totalPendapatan: number
+  jumlahPembayaran: number
+  /** null kalau aplikasi ini belum pernah menerima pembayaran. */
+  pembayaranTerakhir: string | null
+  totalTenant: number
+  tenantAktif: number
+  /** Rincian tenant menurut status, urutannya tetap. */
+  statusLangganan: { status: TenantStatus; jumlah: number }[]
+}
+
+const URUTAN_STATUS: TenantStatus[] = [
+  TenantStatus.TRIAL,
+  TenantStatus.AKTIF,
+  TenantStatus.SUSPENDED,
+  TenantStatus.EXPIRED,
+]
+
+/**
+ * Statistik satu aplikasi: total pendapatan dan jumlah tenant aktifnya.
+ * `kunci` boleh berupa UUID maupun slug — halaman statistik di frontend
+ * memakai slug pada URL-nya.
+ */
+export async function ambilStatistikAplikasi(kunci: string): Promise<StatistikAplikasi | null> {
+  const aplikasi = await prisma.app.findFirst({
+    where: uuidSah(kunci) ? { OR: [{ id: kunci }, { slug: kunci }] } : { slug: kunci },
+    select: { id: true },
+  })
+  if (!aplikasi) return null
+
+  const [ringkas, pembayaran, perStatus] = await Promise.all([
+    ambilSatuAplikasi(aplikasi.id),
+    prisma.payment.aggregate({
+      where: { tenant: { appId: aplikasi.id } },
+      _sum: { amount: true },
+      _count: { _all: true },
+      _max: { paymentDate: true },
+    }),
+    prisma.tenant.groupBy({
+      by: ['status'],
+      where: { appId: aplikasi.id },
+      _count: { _all: true },
+    }),
+  ])
+
+  if (!ringkas) return null
+
+  const jumlahPerStatus = new Map<TenantStatus, number>(
+    perStatus.map((baris) => [baris.status, baris._count._all]),
+  )
+
+  return {
+    aplikasi: ringkas,
+    // Decimal → number, sama seperti pada endpoint pembayaran.
+    totalPendapatan: Number(pembayaran._sum.amount?.toString() ?? 0),
+    jumlahPembayaran: pembayaran._count._all,
+    pembayaranTerakhir: pembayaran._max.paymentDate?.toISOString() ?? null,
+    totalTenant: ringkas.jumlahTenant,
+    tenantAktif: ringkas.jumlahTenantAktif,
+    statusLangganan: URUTAN_STATUS.map((status) => ({
+      status,
+      jumlah: jumlahPerStatus.get(status) ?? 0,
+    })),
   }
 }
 
