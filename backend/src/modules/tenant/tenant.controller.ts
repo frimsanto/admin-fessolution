@@ -8,6 +8,7 @@ import {
   ambilDetailTenant,
   DAFTAR_STATUS,
   statusSah,
+  ubahStatusTenant,
   type FilterDaftarTenant,
 } from './tenant.service.js'
 
@@ -56,4 +57,32 @@ export async function getDetailTenant(req: Request, res: Response): Promise<void
   }
 
   kirimSukses(res, tenant, 'Detail tenant berhasil diambil')
+}
+
+/** PATCH /api/tenant/:id/status — body: { status } */
+export async function patchStatusTenant(req: Request, res: Response): Promise<void> {
+  const { id } = req.params
+  if (!id || !uuidSah(id)) {
+    throw new AppError('Tenant tidak ditemukan', 404)
+  }
+
+  const isi = req.body as { status?: unknown } | undefined
+  const status = isi?.status
+
+  if (status === undefined || status === null || status === '') {
+    throw new AppError('Field status wajib diisi', 400)
+  }
+  if (typeof status !== 'string' || !statusSah(status)) {
+    throw new AppError(
+      `Status "${String(status)}" tidak dikenal. Pilihan: ${DAFTAR_STATUS.join(', ')}`,
+      400,
+    )
+  }
+
+  const tenant = await ubahStatusTenant(id, status)
+  if (!tenant) {
+    throw new AppError('Tenant tidak ditemukan', 404)
+  }
+
+  kirimSukses(res, tenant, `Status tenant diubah menjadi ${status}`)
 }

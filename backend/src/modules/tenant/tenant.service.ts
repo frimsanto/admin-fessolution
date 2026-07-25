@@ -48,6 +48,26 @@ export async function ambilDetailTenant(id: string): Promise<TenantDto | null> {
   return tenant ? keTenantDto(tenant) : null
 }
 
+/**
+ * Ubah status langganan tenant secara manual (suspend / aktifkan kembali).
+ * Mengembalikan null kalau tenantnya tidak ada.
+ */
+export async function ubahStatusTenant(
+  id: string,
+  status: TenantStatus,
+): Promise<TenantDto | null> {
+  const ada = await prisma.tenant.findUnique({ where: { id }, select: { id: true } })
+  if (!ada) return null
+
+  const tenant = await prisma.tenant.update({
+    where: { id },
+    data: { status },
+    select: PILIH_TENANT,
+  })
+
+  return keTenantDto(tenant)
+}
+
 const STATUS_SAH = Object.values(TenantStatus) as string[]
 
 export function statusSah(nilai: string): nilai is TenantStatus {
