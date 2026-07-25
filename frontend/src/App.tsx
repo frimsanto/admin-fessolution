@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppShell } from '@/components/layout/AppShell'
 import { DaftarTenantPage } from '@/pages/DaftarTenantPage'
+import { DetailTenantPage } from '@/pages/DetailTenantPage'
 import { HalamanSegeraHadir } from '@/pages/HalamanSegeraHadir'
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
           }
         />
         <Route path="tenant" element={<DaftarTenantPage />} />
+        <Route path="tenant/:id" element={<DetailTenantPage />} />
         <Route
           path="aplikasi"
           element={

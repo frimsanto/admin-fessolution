@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion'
+import { ChevronRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 import { BadgeStatus } from '@/components/ui/BadgeStatus'
 import { formatTanggal, labelSisaHari, sisaHari } from '@/lib/format'
@@ -41,7 +43,7 @@ export function TabelTenant({ daftar, kunciAnimasi, pesanKosong }: Props) {
   return (
     <div className="overflow-hidden rounded-2xl border border-hairline bg-surface">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
+        <table className="w-full min-w-208 border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-hairline">
               {KOLOM.map((kolom) => (
@@ -53,6 +55,9 @@ export function TabelTenant({ daftar, kunciAnimasi, pesanKosong }: Props) {
                   {kolom}
                 </th>
               ))}
+              <th scope="col" className="w-10">
+                <span className="sr-only">Buka detail</span>
+              </th>
             </tr>
           </thead>
 
@@ -64,7 +69,12 @@ export function TabelTenant({ daftar, kunciAnimasi, pesanKosong }: Props) {
                 className="border-b border-hairline transition-colors last:border-0 hover:bg-surface-hover"
               >
                 <td className="px-5 py-4">
-                  <div className="font-medium text-ink">{tenant.namaBisnis}</div>
+                  <Link
+                    to={`/tenant/${tenant.id}`}
+                    className="font-medium text-ink transition-colors hover:text-accent-bright"
+                  >
+                    {tenant.namaBisnis}
+                  </Link>
                   <div className="mt-0.5 text-xs text-ink-faint">{tenant.emailPemilik}</div>
                 </td>
 
@@ -89,6 +99,16 @@ export function TabelTenant({ daftar, kunciAnimasi, pesanKosong }: Props) {
                   <div className={`mt-0.5 text-xs ${warnaSisaHari(tenant.tanggalBerakhir)}`}>
                     {labelSisaHari(tenant.tanggalBerakhir)}
                   </div>
+                </td>
+
+                <td className="pr-4">
+                  <Link
+                    to={`/tenant/${tenant.id}`}
+                    aria-label={`Buka detail ${tenant.namaBisnis}`}
+                    className="grid size-8 place-items-center rounded-lg text-ink-faint transition-colors hover:bg-elevated hover:text-ink"
+                  >
+                    <ChevronRight className="size-4" aria-hidden="true" />
+                  </Link>
                 </td>
               </motion.tr>
             ))}
