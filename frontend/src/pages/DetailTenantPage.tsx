@@ -26,6 +26,7 @@ import {
   akanDitangguhkan as akanDitangguhkanStatus,
   statusSetelahUbah,
 } from '@/lib/status-tenant'
+import { ubahStatusTenant } from '@/services/tenant'
 import { LABEL_STATUS, type StatusTenant, type Tenant } from '@/types/tenant'
 
 function TautanKembali() {
@@ -72,6 +73,8 @@ function IsiDetail({ tenant, pakaiDataTiruan }: { tenant: Tenant; pakaiDataTirua
   const [status, setStatus] = useState<StatusTenant>(tenant.status)
   const [modalTerbuka, setModalTerbuka] = useState(false)
   const [pemberitahuan, setPemberitahuan] = useState<string | null>(null)
+  const [menyimpan, setMenyimpan] = useState(false)
+  const [galatUbah, setGalatUbah] = useState<string | null>(null)
 
   const sisa = sisaHari(tenant.tanggalBerakhir)
   const akanDitangguhkan = akanDitangguhkanStatus(status)
@@ -79,12 +82,41 @@ function IsiDetail({ tenant, pakaiDataTiruan }: { tenant: Tenant; pakaiDataTirua
   const labelAksi = akanDitangguhkan ? 'Tangguhkan tenant' : 'Aktifkan kembali'
   const IkonAksi = akanDitangguhkan ? CirclePause : CirclePlay
 
-  function konfirmasiUbahStatus() {
-    setStatus(statusTujuan)
+  function selesaikanUbah(statusBaru: StatusTenant, catatan = '') {
+    setStatus(statusBaru)
     setModalTerbuka(false)
     setPemberitahuan(
-      `Status ${tenant.namaBisnis} diubah menjadi ${LABEL_STATUS[statusTujuan]}. Perubahan ini belum tersimpan — halaman masih memakai data tiruan.`,
+      `Status ${tenant.namaBisnis} diubah menjadi ${LABEL_STATUS[statusBaru]}.${catatan}`,
     )
+  }
+
+  async function konfirmasiUbahStatus() {
+    setMenyimpan(true)
+    setGalatUbah(null)
+
+    try {
+      const diperbarui = await ubahStatusTenant(tenant.id, statusTujuan)
+      selesaikanUbah(diperbarui.status)
+    } catch (err: unknown) {
+      // Endpoint PATCH belum ada di backend — saat dev perubahan disimulasikan
+      // secara lokal, dan banner menyebutkannya terang-terangan.
+      if (import.meta.env.DEV) {
+        selesaikanUbah(
+          statusTujuan,
+          ' Perubahan belum benar-benar tersimpan: endpoint PATCH /api/tenant/:id/status belum tersedia.',
+        )
+        return
+      }
+
+      setGalatUbah(err instanceof Error ? err.message : 'Gagal mengubah status tenant')
+    } finally {
+      setMenyimpan(false)
+    }
+  }
+
+  function batalkanUbah() {
+    setModalTerbuka(false)
+    setGalatUbah(null)
   }
 
   return (
@@ -153,7 +185,7 @@ function IsiDetail({ tenant, pakaiDataTiruan }: { tenant: Tenant; pakaiDataTirua
             Informasi tenant
           </h2>
 
-          <div className="divide-y divide-[var(--color-hairline)]">
+          <div className="divide-y divide-hairline">
             <BarisInfo Ikon={Mail} label="Email pemilik">
               <a
                 href={`mailto:${tenant.emailPemilik}`}
@@ -211,8 +243,10 @@ function IsiDetail({ tenant, pakaiDataTiruan }: { tenant: Tenant; pakaiDataTirua
         judul={akanDitangguhkan ? 'Tangguhkan tenant ini?' : 'Aktifkan kembali tenant ini?'}
         bahaya={akanDitangguhkan}
         labelKonfirmasi={akanDitangguhkan ? 'Ya, tangguhkan' : 'Ya, aktifkan'}
-        onKonfirmasi={konfirmasiUbahStatus}
-        onBatal={() => setModalTerbuka(false)}
+        sedangProses={menyimpan}
+        galat={galatUbah}
+        onKonfirmasi={() => void konfirmasiUbahStatus()}
+        onBatal={batalkanUbah}
         deskripsi={
           akanDitangguhkan ? (
             <>

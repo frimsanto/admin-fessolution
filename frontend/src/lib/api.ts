@@ -38,15 +38,24 @@ export function hapusToken(): void {
   localStorage.removeItem(KUNCI_TOKEN)
 }
 
-export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
+type OpsiMinta = {
+  metode?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
+  isi?: unknown
+  signal?: AbortSignal
+}
+
+async function minta<T>(path: string, { metode = 'GET', isi, signal }: OpsiMinta = {}): Promise<T> {
   const token = ambilToken()
 
   const res = await fetch(`${BASE_URL}${path}`, {
+    method: metode,
     signal,
     headers: {
       Accept: 'application/json',
+      ...(isi === undefined ? {} : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
+    ...(isi === undefined ? {} : { body: JSON.stringify(isi) }),
   })
 
   let body: ApiResponse<T> | null = null
@@ -61,4 +70,12 @@ export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> 
   }
 
   return body.data as T
+}
+
+export function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
+  return minta<T>(path, { signal })
+}
+
+export function apiPatch<T>(path: string, isi: unknown, signal?: AbortSignal): Promise<T> {
+  return minta<T>(path, { metode: 'PATCH', isi, signal })
 }
