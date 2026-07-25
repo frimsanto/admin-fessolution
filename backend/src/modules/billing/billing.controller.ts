@@ -4,6 +4,8 @@ import { AppError } from '../../middlewares/error-handler.js'
 import { kirimSukses } from '../../utils/api-response.js'
 import { uuidSah } from '../../utils/uuid.js'
 import {
+  AMBANG_HARI,
+  ambilPeringatanMasaAktif,
   ambilRiwayatPembayaran,
   ambilStatusLangganan,
   konfirmasiPembayaran,
@@ -23,6 +25,32 @@ function slugOpsional(req: Request): string | undefined {
 export async function getStatusLangganan(req: Request, res: Response): Promise<void> {
   const hasil = await ambilStatusLangganan(slugOpsional(req))
   kirimSukses(res, hasil, 'Status langganan berhasil diambil')
+}
+
+/** Ambang wajar supaya query tidak diminta menarik data bertahun-tahun. */
+const AMBANG_MAKS = 365
+
+/** GET /api/billing/peringatan?hari=7 */
+export async function getPeringatanMasaAktif(req: Request, res: Response): Promise<void> {
+  const hariMentah = req.query.hari
+  if (hariMentah !== undefined && typeof hariMentah !== 'string') {
+    throw new AppError('Parameter hari hanya boleh diisi satu nilai', 400)
+  }
+
+  let ambang = AMBANG_HARI
+  if (typeof hariMentah === 'string' && hariMentah.trim() !== '') {
+    const angka = Number(hariMentah)
+    if (!Number.isInteger(angka) || angka < 0 || angka > AMBANG_MAKS) {
+      throw new AppError(
+        `Parameter hari harus bilangan bulat antara 0 dan ${AMBANG_MAKS}`,
+        400,
+      )
+    }
+    ambang = angka
+  }
+
+  const hasil = await ambilPeringatanMasaAktif(ambang)
+  kirimSukses(res, hasil, 'Peringatan masa aktif berhasil diambil')
 }
 
 /** GET /api/billing/pembayaran?tenantId=<uuid>&aplikasi=<slug> */

@@ -59,6 +59,45 @@ export async function ambilStatusLangganan(slugAplikasi?: string): Promise<Statu
   }
 }
 
+/** Ambang bawaan peringatan masa aktif, sama dengan di frontend. */
+export const AMBANG_HARI = 7
+
+/** Hanya langganan yang masih berjalan yang perlu diperingatkan. */
+const STATUS_DIPANTAU: TenantStatus[] = [TenantStatus.TRIAL, TenantStatus.AKTIF]
+
+export type PeringatanMasaAktif = {
+  ambangHari: number
+  total: number
+  daftar: TenantDto[]
+}
+
+/**
+ * Tenant yang masa aktifnya berakhir dalam `ambang` hari ke depan, paling
+ * mendesak lebih dulu. Yang sudah lewat tidak masuk karena penanganannya
+ * berbeda — itu urusan konfirmasi pembayaran.
+ */
+export async function ambilPeringatanMasaAktif(
+  ambang: number = AMBANG_HARI,
+  sekarang: Date = new Date(),
+): Promise<PeringatanMasaAktif> {
+  const batas = new Date(sekarang.getTime() + ambang * 24 * 60 * 60 * 1000)
+
+  const daftar = await prisma.tenant.findMany({
+    where: {
+      status: { in: STATUS_DIPANTAU },
+      expiredDate: { gte: sekarang, lte: batas },
+    },
+    select: PILIH_TENANT,
+    orderBy: [{ expiredDate: 'asc' }, { businessName: 'asc' }],
+  })
+
+  return {
+    ambangHari: ambang,
+    total: daftar.length,
+    daftar: daftar.map(keTenantDto),
+  }
+}
+
 export type FilterRiwayat = {
   tenantId?: string
   /** Slug aplikasi, mis. `cafeos`. */
