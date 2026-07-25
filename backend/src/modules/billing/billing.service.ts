@@ -1,5 +1,10 @@
 import { TenantStatus } from '../../generated/prisma/enums.js'
 import { prisma } from '../../lib/prisma.js'
+import { keTenantDto, PILIH_TENANT, type TenantDto } from '../tenant/tenant.mapper.js'
+import { kePembayaranDto, PILIH_PEMBAYARAN, type PembayaranDto } from './billing.mapper.js'
+
+/** Perpanjangan bawaan sekali konfirmasi pembayaran, sama dengan di frontend. */
+export const HARI_PERPANJANGAN = 30
 
 /** Urutan tetap, sama dengan yang dipakai frontend. */
 export const URUTAN_STATUS: TenantStatus[] = [
@@ -51,5 +56,72 @@ export async function ambilStatusLangganan(slugAplikasi?: string): Promise<Statu
         persen: total === 0 ? 0 : Math.round((jumlah / total) * 100),
       }
     }),
+  }
+}
+
+/**
+ * Tanggal berakhir setelah konfirmasi. Kalau masa aktifnya sudah lewat,
+ * perpanjangan dihitung dari sekarang — bukan dari tanggal lama yang sudah basi.
+ */
+export function tanggalSetelahPerpanjangan(
+  tanggalBerakhir: Date,
+  hari: number,
+  sekarang: Date = new Date(),
+): Date {
+  const mulai = tanggalBerakhir.getTime() > sekarang.getTime() ? tanggalBerakhir : sekarang
+  return new Date(mulai.getTime() + hari * 24 * 60 * 60 * 1000)
+}
+
+export type IsianKonfirmasi = {
+  tenantId: string
+  jumlah: number
+  catatanAdmin?: string | null
+  hariPerpanjangan?: number
+}
+
+export type HasilKonfirmasi = {
+  tenant: TenantDto
+  pembayaran: PembayaranDto
+}
+
+/**
+ * Konfirmasi pembayaran manual: catat pembayarannya, aktifkan tenant, dan
+ * perpanjang masa berlakunya. Ketiganya dalam satu transaksi supaya tidak
+ * pernah ada pembayaran tercatat tanpa tenant ikut diperpanjang.
+ * Mengembalikan null kalau tenantnya tidak ada.
+ */
+export async function konfirmasiPembayaran(
+  isian: IsianKonfirmasi,
+  sekarang: Date = new Date(),
+): Promise<HasilKonfirmasi | null> {
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: isian.tenantId },
+    select: { id: true, expiredDate: true },
+  })
+  if (!tenant) return null
+
+  const hari = isian.hariPerpanjangan ?? HARI_PERPANJANGAN
+  const berakhirBaru = tanggalSetelahPerpanjangan(tenant.expiredDate, hari, sekarang)
+
+  const [pembayaran, tenantBaru] = await prisma.$transaction([
+    prisma.payment.create({
+      data: {
+        tenantId: tenant.id,
+        amount: isian.jumlah,
+        paymentDate: sekarang,
+        adminNote: isian.catatanAdmin ?? null,
+      },
+      select: PILIH_PEMBAYARAN,
+    }),
+    prisma.tenant.update({
+      where: { id: tenant.id },
+      data: { status: TenantStatus.AKTIF, expiredDate: berakhirBaru },
+      select: PILIH_TENANT,
+    }),
+  ])
+
+  return {
+    tenant: keTenantDto(tenantBaru),
+    pembayaran: kePembayaranDto(pembayaran),
   }
 }
