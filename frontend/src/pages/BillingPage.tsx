@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion'
 
+import { DaftarPeringatan } from '@/components/billing/DaftarPeringatan'
 import { RingkasanLangganan } from '@/components/billing/RingkasanLangganan'
 import { JudulHalaman } from '@/components/layout/JudulHalaman'
 import { KartuSeksi, SeksiKosong } from '@/components/ui/KartuSeksi'
 import { BannerDataTiruan, KeadaanGagal } from '@/components/ui/KeadaanMuat'
 import { useDaftarTenant } from '@/hooks/useDaftarTenant'
 import { varianDaftar } from '@/lib/motion'
+import { AMBANG_HARI } from '@/lib/peringatan-masa-aktif'
 
 /**
  * Kerangka halaman Billing & Pembayaran.
@@ -41,10 +43,14 @@ export function BillingPage() {
         <div className="grid gap-5 xl:grid-cols-2">
           <KartuSeksi
             judul="Masa aktif akan habis"
-            deskripsi="Tenant yang berakhir dalam 7 hari ke depan."
+            deskripsi={`Tenant yang berakhir dalam ${AMBANG_HARI} hari ke depan.`}
             isiRapat
           >
-            <SeksiKosong pesan="Daftar peringatan belum tersedia." />
+            {memuat ? (
+              <SeksiKosong pesan="Memuat peringatan…" />
+            ) : (
+              <DaftarPeringatan daftar={daftar} />
+            )}
           </KartuSeksi>
 
           <KartuSeksi
