@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppShell } from '@/components/layout/AppShell'
 import { BillingPage } from '@/pages/BillingPage'
+import { DaftarAplikasiPage } from '@/pages/DaftarAplikasiPage'
 import { DaftarTenantPage } from '@/pages/DaftarTenantPage'
 import { DetailTenantPage } from '@/pages/DetailTenantPage'
 import { HalamanSegeraHadir } from '@/pages/HalamanSegeraHadir'
@@ -22,12 +23,14 @@ export default function App() {
         />
         <Route path="tenant" element={<DaftarTenantPage />} />
         <Route path="tenant/:id" element={<DetailTenantPage />} />
+        <Route path="aplikasi" element={<DaftarAplikasiPage />} />
         <Route
-          path="aplikasi"
+          path="aplikasi/:slug/statistik"
           element={
             <HalamanSegeraHadir
-              judul="Manajemen Aplikasi"
-              deskripsi="Kelola aplikasi SaaS yang berjalan di platform."
+              judul="Statistik Aplikasi"
+              deskripsi="Ringkasan pendapatan dan tenant aktif untuk satu aplikasi."
+              catatan="Halamannya sedang dikerjakan di task berikutnya."
             />
           }
         />
