@@ -2,8 +2,10 @@ import type { Request, Response } from 'express'
 
 import { AppError } from '../../middlewares/error-handler.js'
 import { kirimSukses } from '../../utils/api-response.js'
+import { uuidSah } from '../../utils/uuid.js'
 import {
   ambilDaftarTenant,
+  ambilDetailTenant,
   DAFTAR_STATUS,
   statusSah,
   type FilterDaftarTenant,
@@ -37,4 +39,21 @@ function bacaFilter(req: Request): FilterDaftarTenant {
 export async function getDaftarTenant(req: Request, res: Response): Promise<void> {
   const hasil = await ambilDaftarTenant(bacaFilter(req))
   kirimSukses(res, hasil, 'Daftar tenant berhasil diambil')
+}
+
+/** GET /api/tenant/:id */
+export async function getDetailTenant(req: Request, res: Response): Promise<void> {
+  const { id } = req.params
+
+  // id bukan UUID pasti tidak akan ketemu — jawab 404, bukan error database.
+  if (!id || !uuidSah(id)) {
+    throw new AppError('Tenant tidak ditemukan', 404)
+  }
+
+  const tenant = await ambilDetailTenant(id)
+  if (!tenant) {
+    throw new AppError('Tenant tidak ditemukan', 404)
+  }
+
+  kirimSukses(res, tenant, 'Detail tenant berhasil diambil')
 }
