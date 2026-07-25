@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion'
 
+import { RingkasanLangganan } from '@/components/billing/RingkasanLangganan'
 import { JudulHalaman } from '@/components/layout/JudulHalaman'
 import { KartuSeksi, SeksiKosong } from '@/components/ui/KartuSeksi'
+import { BannerDataTiruan, KeadaanGagal } from '@/components/ui/KeadaanMuat'
+import { useDaftarTenant } from '@/hooks/useDaftarTenant'
 import { varianDaftar } from '@/lib/motion'
 
 /**
@@ -10,6 +13,8 @@ import { varianDaftar } from '@/lib/motion'
  * masa aktif habis, riwayat pembayaran, dan konfirmasi pembayaran manual.
  */
 export function BillingPage() {
+  const { memuat, daftar, pesanGagal, pakaiDataTiruan, muatUlang } = useDaftarTenant()
+
   return (
     <>
       <JudulHalaman
@@ -17,12 +22,20 @@ export function BillingPage() {
         deskripsi="Pantau status langganan, konfirmasi pembayaran manual, dan lihat riwayatnya."
       />
 
+      {pakaiDataTiruan && <BannerDataTiruan />}
+
+      {pesanGagal && <KeadaanGagal pesan={pesanGagal} onCobaLagi={muatUlang} />}
+
       <motion.div variants={varianDaftar} initial="awal" animate="tampil" className="grid gap-5">
         <KartuSeksi
           judul="Ringkasan status langganan"
           deskripsi="Jumlah tenant berdasarkan masa trial, aktif, dan kedaluwarsa."
         >
-          <SeksiKosong pesan="Ringkasan status langganan belum tersedia." />
+          {memuat ? (
+            <SeksiKosong pesan="Memuat ringkasan…" />
+          ) : (
+            <RingkasanLangganan daftar={daftar} />
+          )}
         </KartuSeksi>
 
         <div className="grid gap-5 xl:grid-cols-2">
