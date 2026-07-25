@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { InterceptorSesi } from '@/components/auth/InterceptorSesi'
+import { RuteTerlindungi } from '@/components/auth/RuteTerlindungi'
 import { TamuSaja } from '@/components/auth/TamuSaja'
 import { AppShell } from '@/components/layout/AppShell'
 import { AuthProvider } from '@/context/AuthProvider'
@@ -29,24 +30,27 @@ export default function App() {
             <Route path="login" element={<LoginPage />} />
           </Route>
 
-          <Route element={<AppShell />}>
-            <Route
-              index
-              element={
-                <HalamanSegeraHadir
-                  judul="Dashboard"
-                  deskripsi="Ringkasan pendapatan, tenant, dan aplikasi platform."
-                  catatan="API-nya sudah siap di /api/dashboard/ringkasan, tapi task untuk halamannya belum ada di backlog."
-                />
-              }
-            />
-            <Route path="tenant" element={<DaftarTenantPage />} />
-            <Route path="tenant/:id" element={<DetailTenantPage />} />
-            <Route path="aplikasi" element={<DaftarAplikasiPage />} />
-            <Route path="aplikasi/:slug/statistik" element={<StatistikAplikasiPage />} />
-            <Route path="billing" element={<BillingPage />} />
-            <Route path="broadcast" element={<BroadcastPage />} />
-            <Route path="broadcast/riwayat" element={<RiwayatPengumumanPage />} />
+          {/* Semua yang di bawah ini butuh sesi. */}
+          <Route element={<RuteTerlindungi />}>
+            <Route element={<AppShell />}>
+              <Route
+                index
+                element={
+                  <HalamanSegeraHadir
+                    judul="Dashboard"
+                    deskripsi="Ringkasan pendapatan, tenant, dan aplikasi platform."
+                    catatan="API-nya sudah siap di /api/dashboard/ringkasan, tapi task untuk halamannya belum ada di backlog."
+                  />
+                }
+              />
+              <Route path="tenant" element={<DaftarTenantPage />} />
+              <Route path="tenant/:id" element={<DetailTenantPage />} />
+              <Route path="aplikasi" element={<DaftarAplikasiPage />} />
+              <Route path="aplikasi/:slug/statistik" element={<StatistikAplikasiPage />} />
+              <Route path="billing" element={<BillingPage />} />
+              <Route path="broadcast" element={<BroadcastPage />} />
+              <Route path="broadcast/riwayat" element={<RiwayatPengumumanPage />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
