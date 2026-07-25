@@ -38,6 +38,21 @@ export function hapusToken(): void {
   localStorage.removeItem(KUNCI_TOKEN)
 }
 
+type PenanganSesiBerakhir = () => void
+
+let penanganSesiBerakhir: PenanganSesiBerakhir | null = null
+
+/**
+ * Pasang penanganan untuk saat server menolak dengan 401 — sesi habis atau
+ * tokennya tidak lagi sah. Dipanggil dari lapisan React; modul ini sendiri
+ * sengaja tidak tahu apa-apa soal router.
+ *
+ * Kirim `null` untuk melepasnya kembali.
+ */
+export function pasangPenanganSesiBerakhir(penangan: PenanganSesiBerakhir | null): void {
+  penanganSesiBerakhir = penangan
+}
+
 /**
  * Rangkai query string dari parameter opsional. Nilai `undefined` atau string
  * kosong dibuang supaya URL-nya tidak berisi filter yang sebenarnya tidak dipakai.
@@ -77,6 +92,14 @@ async function minta<T>(path: string, { metode = 'GET', isi, signal }: OpsiMinta
     body = (await res.json()) as ApiResponse<T>
   } catch {
     // Respons bukan JSON — biarkan null, ditangani di bawah.
+  }
+
+  // Token ditolak: buang sesinya di sini supaya tidak ada permintaan berikutnya
+  // yang berangkat membawa token basi.
+  if (res.status === 401) {
+    hapusToken()
+    penanganSesiBerakhir?.()
+    throw new ApiError(body?.message ?? 'Sesi berakhir. Silakan masuk lagi.', 401)
   }
 
   if (!res.ok || !body?.success) {

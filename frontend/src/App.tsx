@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
+import { InterceptorSesi } from '@/components/auth/InterceptorSesi'
 import { TamuSaja } from '@/components/auth/TamuSaja'
 import { AppShell } from '@/components/layout/AppShell'
 import { AuthProvider } from '@/context/AuthProvider'
@@ -20,6 +21,8 @@ export default function App() {
       {/* Riwayat pengumuman dipegang di atas router supaya halaman Broadcast
           dan Riwayat melihat daftar yang sama saat berpindah. */}
       <PengumumanProvider>
+        <InterceptorSesi />
+
         <Routes>
           {/* Di luar AppShell: halaman login tampil tanpa sidebar. */}
           <Route element={<TamuSaja />}>
