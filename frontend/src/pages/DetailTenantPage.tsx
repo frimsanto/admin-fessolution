@@ -1,13 +1,27 @@
-import { motion } from 'framer-motion'
-import { ArrowLeft, Boxes, CalendarClock, CalendarPlus, Hash, Mail } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  ArrowLeft,
+  Boxes,
+  CalendarClock,
+  CalendarPlus,
+  CirclePause,
+  CirclePlay,
+  Hash,
+  Mail,
+} from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { BadgeStatus } from '@/components/ui/BadgeStatus'
+import { ModalKonfirmasi } from '@/components/ui/ModalKonfirmasi'
 import { TENANT_TIRUAN } from '@/data/tenant-tiruan'
 import { formatTanggal, labelSisaHari, sisaHari } from '@/lib/format'
 import { varianDaftar, varianItem } from '@/lib/motion'
-import type { Tenant } from '@/types/tenant'
+import {
+  akanDitangguhkan as akanDitangguhkanStatus,
+  statusSetelahUbah,
+} from '@/lib/status-tenant'
+import { LABEL_STATUS, type StatusTenant, type Tenant } from '@/types/tenant'
 
 function TautanKembali() {
   return (
@@ -48,21 +62,75 @@ function warnaSisa(sisa: number): string {
 }
 
 function IsiDetail({ tenant }: { tenant: Tenant }) {
+  // Status disimpan lokal karena masih data tiruan — nanti diganti panggilan API
+  // pada task "Hubungkan aksi ubah status ke API".
+  const [status, setStatus] = useState<StatusTenant>(tenant.status)
+  const [modalTerbuka, setModalTerbuka] = useState(false)
+  const [pemberitahuan, setPemberitahuan] = useState<string | null>(null)
+
   const sisa = sisaHari(tenant.tanggalBerakhir)
+  const akanDitangguhkan = akanDitangguhkanStatus(status)
+  const statusTujuan = statusSetelahUbah(status)
+  const labelAksi = akanDitangguhkan ? 'Tangguhkan tenant' : 'Aktifkan kembali'
+  const IkonAksi = akanDitangguhkan ? CirclePause : CirclePlay
+
+  function konfirmasiUbahStatus() {
+    setStatus(statusTujuan)
+    setModalTerbuka(false)
+    setPemberitahuan(
+      `Status ${tenant.namaBisnis} diubah menjadi ${LABEL_STATUS[statusTujuan]}. Perubahan ini belum tersimpan — halaman masih memakai data tiruan.`,
+    )
+  }
 
   return (
     <>
       <TautanKembali />
 
-      <header className="mb-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">{tenant.namaBisnis}</h1>
-          <BadgeStatus status={tenant.status} />
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight text-ink">{tenant.namaBisnis}</h1>
+            <BadgeStatus status={status} />
+          </div>
+          <p className="mt-1.5 text-sm text-ink-muted">
+            Tenant {tenant.aplikasi.nama} · bergabung {formatTanggal(tenant.tanggalDaftar)}
+          </p>
         </div>
-        <p className="mt-1.5 text-sm text-ink-muted">
-          Tenant {tenant.aplikasi.nama} · bergabung {formatTanggal(tenant.tanggalDaftar)}
-        </p>
+
+        <button
+          type="button"
+          onClick={() => setModalTerbuka(true)}
+          className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+            akanDitangguhkan
+              ? 'border-hairline text-ink-muted hover:border-expired/40 hover:bg-expired/10 hover:text-expired'
+              : 'border-accent/40 bg-accent-soft text-accent-bright hover:bg-accent/25'
+          }`}
+        >
+          <IkonAksi className="size-4" aria-hidden="true" />
+          {labelAksi}
+        </button>
       </header>
+
+      <AnimatePresence>
+        {pemberitahuan && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            role="status"
+            className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-ink"
+          >
+            <span>{pemberitahuan}</span>
+            <button
+              type="button"
+              onClick={() => setPemberitahuan(null)}
+              className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
+            >
+              Tutup
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.div
         variants={varianDaftar}
@@ -130,6 +198,30 @@ function IsiDetail({ tenant }: { tenant: Tenant }) {
           </div>
         </motion.section>
       </motion.div>
+
+      <ModalKonfirmasi
+        terbuka={modalTerbuka}
+        judul={akanDitangguhkan ? 'Tangguhkan tenant ini?' : 'Aktifkan kembali tenant ini?'}
+        bahaya={akanDitangguhkan}
+        labelKonfirmasi={akanDitangguhkan ? 'Ya, tangguhkan' : 'Ya, aktifkan'}
+        onKonfirmasi={konfirmasiUbahStatus}
+        onBatal={() => setModalTerbuka(false)}
+        deskripsi={
+          akanDitangguhkan ? (
+            <>
+              <span className="font-medium text-ink">{tenant.namaBisnis}</span> tidak akan bisa
+              mengakses {tenant.aplikasi.nama} sampai diaktifkan kembali. Status berubah dari{' '}
+              {LABEL_STATUS[status]} menjadi {LABEL_STATUS.SUSPENDED}.
+            </>
+          ) : (
+            <>
+              <span className="font-medium text-ink">{tenant.namaBisnis}</span> akan bisa mengakses{' '}
+              {tenant.aplikasi.nama} lagi. Status berubah dari {LABEL_STATUS.SUSPENDED} menjadi{' '}
+              {LABEL_STATUS.AKTIF}.
+            </>
+          )
+        }
+      />
     </>
   )
 }
@@ -158,5 +250,6 @@ export function DetailTenantPage() {
 
   if (!tenant) return <TenantTidakDitemukan id={id} />
 
-  return <IsiDetail tenant={tenant} />
+  // `key` memastikan state status ikut ter-reset saat berpindah antar tenant.
+  return <IsiDetail key={tenant.id} tenant={tenant} />
 }
