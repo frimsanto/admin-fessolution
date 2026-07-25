@@ -1,13 +1,16 @@
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
+  LogOut,
   Megaphone,
   Boxes,
   Users,
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+
+import { useAuth } from '@/context/auth-context'
 
 type ItemNav = {
   path: string
@@ -25,7 +28,19 @@ const ITEM_NAV: ItemNav[] = [
   { path: '/broadcast', label: 'Broadcast', Ikon: Megaphone },
 ]
 
+/** Sidebar sengaja icon-only, jadi setiap tombol punya tooltip yang sama. */
+const KELAS_TOOLTIP =
+  'pointer-events-none absolute left-full z-50 ml-3 -translate-x-1 whitespace-nowrap rounded-lg border border-hairline bg-elevated px-2.5 py-1.5 text-xs font-medium text-ink opacity-0 shadow-xl shadow-black/50 transition duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100'
+
 export function Sidebar() {
+  const { sudahMasuk, admin, keluar } = useAuth()
+  const navigate = useNavigate()
+
+  function keluarDariPanel() {
+    keluar()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <nav
       aria-label="Navigasi utama"
@@ -65,17 +80,32 @@ export function Sidebar() {
                 }`}
               />
 
-              {/* Tooltip — sidebar sengaja icon-only. */}
-              <span
-                role="tooltip"
-                className="pointer-events-none absolute left-full z-50 ml-3 -translate-x-1 whitespace-nowrap rounded-lg border border-hairline bg-elevated px-2.5 py-1.5 text-xs font-medium text-ink opacity-0 shadow-xl shadow-black/50 transition duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
-              >
+              <span role="tooltip" className={KELAS_TOOLTIP}>
                 {label}
               </span>
             </>
           )}
         </NavLink>
       ))}
+
+      {sudahMasuk && (
+        <button
+          type="button"
+          onClick={keluarDariPanel}
+          aria-label="Keluar"
+          // mt-auto menempelkan tombol keluar ke dasar sidebar, jauh dari navigasi.
+          className="group relative mt-auto grid size-11 shrink-0 place-items-center rounded-xl transition-colors hover:bg-expired/10"
+        >
+          <LogOut
+            aria-hidden="true"
+            className="size-4.5 text-ink-faint transition-colors group-hover:text-expired"
+          />
+
+          <span role="tooltip" className={KELAS_TOOLTIP}>
+            Keluar{admin ? ` · ${admin.email}` : ''}
+          </span>
+        </button>
+      )}
     </nav>
   )
 }
