@@ -140,3 +140,49 @@ export async function buatAplikasi(
 export function adalahGagal(hasil: AplikasiDto | GagalBuatAplikasi): hasil is GagalBuatAplikasi {
   return 'bentrok' in hasil
 }
+
+/** Satu aplikasi lengkap dengan hitungan tenantnya. */
+async function ambilSatuAplikasi(id: string): Promise<AplikasiDto | null> {
+  const [aplikasi, jumlahAktif] = await Promise.all([
+    prisma.app.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        status: true,
+        createdAt: true,
+        _count: { select: { tenants: true } },
+      },
+    }),
+    prisma.tenant.count({ where: { appId: id, status: TenantStatus.AKTIF } }),
+  ])
+
+  if (!aplikasi) return null
+
+  return {
+    appId: aplikasi.id,
+    nama: aplikasi.name,
+    slug: aplikasi.slug,
+    aktif: aplikasi.status,
+    jumlahTenant: aplikasi._count.tenants,
+    jumlahTenantAktif: jumlahAktif,
+    dibuatPada: aplikasi.createdAt.toISOString(),
+  }
+}
+
+/**
+ * Balik status berjalan/nonaktif sebuah aplikasi.
+ * Mengembalikan null kalau aplikasinya tidak ada.
+ */
+export async function toggleStatusAplikasi(id: string): Promise<AplikasiDto | null> {
+  const sekarang = await prisma.app.findUnique({ where: { id }, select: { status: true } })
+  if (!sekarang) return null
+
+  await prisma.app.update({
+    where: { id },
+    data: { status: !sekarang.status },
+  })
+
+  return ambilSatuAplikasi(id)
+}

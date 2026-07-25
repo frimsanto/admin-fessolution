@@ -2,11 +2,13 @@ import type { Request, Response } from 'express'
 
 import { AppError } from '../../middlewares/error-handler.js'
 import { kirimSukses } from '../../utils/api-response.js'
+import { uuidSah } from '../../utils/uuid.js'
 import {
   adalahGagal,
   ambilDaftarAplikasi,
   buatAplikasi,
   POLA_SLUG,
+  toggleStatusAplikasi,
 } from './aplikasi.service.js'
 
 /** GET /api/apps */
@@ -60,4 +62,23 @@ export async function postAplikasi(req: Request, res: Response): Promise<void> {
   }
 
   kirimSukses(res, hasil, `Aplikasi ${hasil.nama} berhasil ditambahkan`, 201)
+}
+
+/** PUT /api/apps/:id/toggle */
+export async function putToggleAplikasi(req: Request, res: Response): Promise<void> {
+  const { id } = req.params
+  if (!id || !uuidSah(id)) {
+    throw new AppError('Aplikasi tidak ditemukan', 404)
+  }
+
+  const aplikasi = await toggleStatusAplikasi(id)
+  if (!aplikasi) {
+    throw new AppError('Aplikasi tidak ditemukan', 404)
+  }
+
+  kirimSukses(
+    res,
+    aplikasi,
+    `${aplikasi.nama} sekarang ${aplikasi.aktif ? 'berjalan' : 'nonaktif'}`,
+  )
 }
