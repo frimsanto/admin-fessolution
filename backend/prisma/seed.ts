@@ -35,6 +35,8 @@ const TENANT: BenihTenant[] = [
   { slugAplikasi: 'cafeos', businessName: 'Kedai Cengkeh', ownerEmail: 'halo@kedaicengkeh.com', status: TenantStatus.TRIAL, daftar: -9, berakhir: 5 },
   { slugAplikasi: 'cafeos', businessName: 'Bakoel Kopi Lawas', ownerEmail: 'finance@bakoellawas.id', status: TenantStatus.EXPIRED, daftar: -402, berakhir: -37 },
   { slugAplikasi: 'cafeos', businessName: 'Kopi Tepi Jalan', ownerEmail: 'kontak@kopitepijalan.id', status: TenantStatus.AKTIF, daftar: -18, berakhir: 347 },
+  // Baru bergabung beberapa jam lalu — memunculkan notifikasi TENANT_BARU.
+  { slugAplikasi: 'cafeos', businessName: 'Roti Bakar Malam', ownerEmail: 'owner@rotibakarmalam.id', status: TenantStatus.TRIAL, daftar: -0.25, berakhir: 13 },
   { slugAplikasi: 'billiardos', businessName: 'Bola Delapan Sport', ownerEmail: 'manajer@boladelapan.id', status: TenantStatus.AKTIF, daftar: -158, berakhir: 207 },
   { slugAplikasi: 'billiardos', businessName: 'Pool Center Kemang', ownerEmail: 'ops@poolcenter.id', status: TenantStatus.SUSPENDED, daftar: -73, berakhir: 22 },
   { slugAplikasi: 'billiardos', businessName: 'Cue Master Arena', ownerEmail: 'billing@cuemaster.co.id', status: TenantStatus.TRIAL, daftar: -3, berakhir: 11 },

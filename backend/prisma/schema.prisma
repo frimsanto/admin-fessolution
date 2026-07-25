@@ -19,13 +19,29 @@ enum TenantStatus {
   EXPIRED
 }
 
+/// Sasaran pengumuman massal.
+enum BroadcastTarget {
+  SEMUA
+  PER_APLIKASI
+  PER_TENANT
+}
+
+/// Status pengumuman massal.
+enum BroadcastStatus {
+  TERKIRIM
+  DRAFT
+}
+
 /// Akun login pemilik platform (super admin). Tidak terhubung dengan auth tenant.
 model SuperAdmin {
   id           String   @id @default(uuid()) @db.Uuid
+  name         String
   email        String   @unique
   passwordHash String   @map("password_hash")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
+
+  notificationReads NotificationRead[]
 
   @@map("super_admins")
 }
@@ -57,8 +73,9 @@ model Tenant {
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
 
-  app      App       @relation(fields: [appId], references: [id], onDelete: Cascade)
-  payments Payment[]
+  app        App                     @relation(fields: [appId], references: [id], onDelete: Cascade)
+  payments   Payment[]
+  broadcasts BroadcastNotification[]
 
   @@index([appId])
   @@index([status])
@@ -83,17 +100,56 @@ model Payment {
   @@map("payments")
 }
 
-/// Pengumuman massal ke tenant. appId null berarti dikirim ke semua aplikasi.
+/// Pengumuman massal ke tenant.
+/// `target` menentukan mana dari `appId`/`tenantId` yang terisi: SEMUA tidak
+/// mengisi keduanya, PER_APLIKASI mengisi appId, PER_TENANT mengisi tenantId.
+/// `recipientCount` dibekukan saat kirim — jumlah penerima saat itu, bukan
+/// jumlah tenant hari ini.
 model BroadcastNotification {
-  id      String   @id @default(uuid()) @db.Uuid
-  appId   String?  @map("app_id") @db.Uuid
-  title   String
-  message String
-  sentAt  DateTime @default(now()) @map("sent_at")
+  id             String          @id @default(uuid()) @db.Uuid
+  appId          String?         @map("app_id") @db.Uuid
+  tenantId       String?         @map("tenant_id") @db.Uuid
+  title          String
+  message        String
+  target         BroadcastTarget @default(SEMUA)
+  recipientCount Int             @default(0) @map("recipient_count")
+  status         BroadcastStatus @default(TERKIRIM)
+  createdAt      DateTime        @default(now()) @map("created_at")
 
-  app App? @relation(fields: [appId], references: [id], onDelete: SetNull)
+  app    App?    @relation(fields: [appId], references: [id], onDelete: SetNull)
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
   @@index([appId])
-  @@index([sentAt])
+  @@index([tenantId])
+  @@index([createdAt])
+  @@index([target])
+  @@index([status])
   @@map("broadcast_notifications")
+}
+
+/// Token JWT yang sudah di-logout. Baris yang umurnya melewati masa berlaku
+/// token dibuang berkala — token kedaluwarsa sudah ditolak oleh verifikasi JWT.
+model TokenBlacklist {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("token_blacklist")
+}
+
+/// Tanda "sudah dibaca" untuk notifikasi sistem. Notifikasinya sendiri dihitung
+/// dari data tenant & pembayaran (tidak disimpan), jadi yang dicatat di sini
+/// hanya id notifikasi hasil generate itu per admin.
+model NotificationRead {
+  id             String   @id @default(uuid()) @db.Uuid
+  notificationId String   @map("notification_id")
+  adminId        String   @map("admin_id") @db.Uuid
+  readAt         DateTime @default(now()) @map("read_at")
+
+  admin SuperAdmin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, adminId])
+  @@index([adminId])
+  @@map("notification_reads")
 }

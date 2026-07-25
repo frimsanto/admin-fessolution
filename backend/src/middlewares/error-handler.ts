@@ -18,6 +18,20 @@ export function notFoundHandler(req: Request, res: Response): void {
   kirimGagal(res, `Endpoint ${req.method} ${req.originalUrl} tidak ditemukan`, 404);
 }
 
+/**
+ * Status 4xx yang sudah ditempelkan middleware lain pada errornya — mis.
+ * `express.json()` memberi 400 untuk JSON rusak dan 413 untuk body kebesaran.
+ * Tanpa ini semuanya jatuh ke 500, padahal yang salah adalah permintaannya.
+ */
+function statusPermintaanSalah(err: unknown): number | null {
+  if (typeof err !== 'object' || err === null) return null;
+
+  const { status, statusCode } = err as { status?: unknown; statusCode?: unknown };
+  const kode = typeof status === 'number' ? status : statusCode;
+
+  return typeof kode === 'number' && kode >= 400 && kode < 500 ? kode : null;
+}
+
 export function errorHandler(
   err: unknown,
   _req: Request,
@@ -26,6 +40,16 @@ export function errorHandler(
 ): void {
   if (err instanceof AppError) {
     kirimGagal(res, err.message, err.status);
+    return;
+  }
+
+  const kodePermintaan = statusPermintaanSalah(err);
+  if (kodePermintaan !== null) {
+    kirimGagal(
+      res,
+      kodePermintaan === 400 ? 'Isi permintaan tidak bisa dibaca (JSON tidak sah)' : 'Permintaan ditolak',
+      kodePermintaan,
+    );
     return;
   }
 

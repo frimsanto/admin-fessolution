@@ -29,6 +29,10 @@ export const env = {
   databasePoolMax: process.env.DATABASE_POOL_MAX
     ? angka('DATABASE_POOL_MAX', 10)
     : undefined,
+  /** Kunci penandatangan JWT super admin. Wajib — tidak ada nilai bawaan. */
+  jwtSecret: wajib('JWT_SECRET'),
+  /** Masa berlaku token, format `ms` (mis. `8h`). */
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN?.trim() || '8h',
   corsOrigins: (process.env.CORS_ORIGINS ?? '')
     .split(',')
     .map((asal) => asal.trim())
