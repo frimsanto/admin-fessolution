@@ -59,6 +59,46 @@ export async function ambilStatusLangganan(slugAplikasi?: string): Promise<Statu
   }
 }
 
+export type FilterRiwayat = {
+  tenantId?: string
+  /** Slug aplikasi, mis. `cafeos`. */
+  slugAplikasi?: string
+}
+
+export type RiwayatPembayaran = {
+  total: number
+  /** Jumlah seluruh nominal pada hasil yang tersaring. */
+  totalNilai: number
+  daftar: PembayaranDto[]
+}
+
+/**
+ * Riwayat pembayaran, terbaru lebih dulu. Bisa disaring per tenant atau per
+ * aplikasi. `totalNilai` mengikuti filter yang sama, bukan total keseluruhan.
+ */
+export async function ambilRiwayatPembayaran(
+  filter: FilterRiwayat = {},
+): Promise<RiwayatPembayaran> {
+  const where = {
+    ...(filter.tenantId ? { tenantId: filter.tenantId } : {}),
+    ...(filter.slugAplikasi ? { tenant: { app: { slug: filter.slugAplikasi } } } : {}),
+  }
+
+  const daftar = await prisma.payment.findMany({
+    where,
+    select: PILIH_PEMBAYARAN,
+    orderBy: [{ paymentDate: 'desc' }, { createdAt: 'desc' }],
+  })
+
+  const hasil = daftar.map(kePembayaranDto)
+
+  return {
+    total: hasil.length,
+    totalNilai: hasil.reduce((jumlah, bayar) => jumlah + bayar.jumlah, 0),
+    daftar: hasil,
+  }
+}
+
 /**
  * Tanggal berakhir setelah konfirmasi. Kalau masa aktifnya sudah lewat,
  * perpanjangan dihitung dari sekarang — bukan dari tanggal lama yang sudah basi.

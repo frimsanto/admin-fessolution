@@ -3,7 +3,11 @@ import type { Request, Response } from 'express'
 import { AppError } from '../../middlewares/error-handler.js'
 import { kirimSukses } from '../../utils/api-response.js'
 import { uuidSah } from '../../utils/uuid.js'
-import { ambilStatusLangganan, konfirmasiPembayaran } from './billing.service.js'
+import {
+  ambilRiwayatPembayaran,
+  ambilStatusLangganan,
+  konfirmasiPembayaran,
+} from './billing.service.js'
 
 function slugOpsional(req: Request): string | undefined {
   const nilai = req.query.aplikasi
@@ -19,6 +23,24 @@ function slugOpsional(req: Request): string | undefined {
 export async function getStatusLangganan(req: Request, res: Response): Promise<void> {
   const hasil = await ambilStatusLangganan(slugOpsional(req))
   kirimSukses(res, hasil, 'Status langganan berhasil diambil')
+}
+
+/** GET /api/billing/pembayaran?tenantId=<uuid>&aplikasi=<slug> */
+export async function getRiwayatPembayaran(req: Request, res: Response): Promise<void> {
+  const tenantId = req.query.tenantId
+  if (tenantId !== undefined && typeof tenantId !== 'string') {
+    throw new AppError('Parameter tenantId hanya boleh diisi satu nilai', 400)
+  }
+  if (typeof tenantId === 'string' && tenantId.trim() !== '' && !uuidSah(tenantId.trim())) {
+    throw new AppError('Parameter tenantId bukan UUID yang sah', 400)
+  }
+
+  const hasil = await ambilRiwayatPembayaran({
+    tenantId: typeof tenantId === 'string' && tenantId.trim() !== '' ? tenantId.trim() : undefined,
+    slugAplikasi: slugOpsional(req),
+  })
+
+  kirimSukses(res, hasil, 'Riwayat pembayaran berhasil diambil')
 }
 
 /** Batas atas mengikuti kolom Decimal(14,2) di database. */
