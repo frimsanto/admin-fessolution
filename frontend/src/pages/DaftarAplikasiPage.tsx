@@ -1,7 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 
+import { Plus } from 'lucide-react'
+
 import { KartuAplikasi } from '@/components/aplikasi/KartuAplikasi'
+import { ModalTambahAplikasi } from '@/components/aplikasi/ModalTambahAplikasi'
 import { JudulHalaman } from '@/components/layout/JudulHalaman'
 import { ModalKonfirmasi } from '@/components/ui/ModalKonfirmasi'
 import { DAFTAR_APLIKASI_TIRUAN } from '@/data/aplikasi-tiruan'
@@ -12,6 +15,7 @@ export function DaftarAplikasiPage() {
   // Data tiruan — diganti panggilan API saat endpoint aplikasi tersedia.
   const [daftar, setDaftar] = useState<Aplikasi[]>(DAFTAR_APLIKASI_TIRUAN)
   const [akanDinonaktifkan, setAkanDinonaktifkan] = useState<Aplikasi | null>(null)
+  const [formulirTerbuka, setFormulirTerbuka] = useState(false)
   const [pemberitahuan, setPemberitahuan] = useState<string | null>(null)
 
   const berjalan = daftar.filter((aplikasi) => aplikasi.aktif).length
@@ -40,6 +44,16 @@ export function DaftarAplikasiPage() {
       <JudulHalaman
         judul="Manajemen Aplikasi"
         deskripsi={`${berjalan} dari ${daftar.length} aplikasi sedang berjalan.`}
+        aksi={
+          <button
+            type="button"
+            onClick={() => setFormulirTerbuka(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            Tambah aplikasi
+          </button>
+        }
       />
 
       <AnimatePresence>
@@ -73,6 +87,19 @@ export function DaftarAplikasiPage() {
           <KartuAplikasi key={aplikasi.appId} aplikasi={aplikasi} onUbahStatus={ubahStatus} />
         ))}
       </motion.div>
+
+      <ModalTambahAplikasi
+        terbuka={formulirTerbuka}
+        daftar={daftar}
+        onBatal={() => setFormulirTerbuka(false)}
+        onSimpan={(aplikasi) => {
+          setDaftar((lama) => [aplikasi, ...lama])
+          setFormulirTerbuka(false)
+          setPemberitahuan(
+            `${aplikasi.nama} ditambahkan dan langsung berjalan. Perubahan ini belum tersimpan — endpoint aplikasi belum tersedia.`,
+          )
+        }}
+      />
 
       <ModalKonfirmasi
         terbuka={akanDinonaktifkan !== null}
