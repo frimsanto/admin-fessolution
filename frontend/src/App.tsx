@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppShell } from '@/components/layout/AppShell'
+import { BillingPage } from '@/pages/BillingPage'
 import { DaftarTenantPage } from '@/pages/DaftarTenantPage'
 import { DetailTenantPage } from '@/pages/DetailTenantPage'
 import { HalamanSegeraHadir } from '@/pages/HalamanSegeraHadir'
@@ -30,15 +31,7 @@ export default function App() {
             />
           }
         />
-        <Route
-          path="billing"
-          element={
-            <HalamanSegeraHadir
-              judul="Billing & Pembayaran"
-              deskripsi="Status langganan, konfirmasi pembayaran, dan riwayat tenant."
-            />
-          }
-        />
+        <Route path="billing" element={<BillingPage />} />
         <Route
           path="broadcast"
           element={
