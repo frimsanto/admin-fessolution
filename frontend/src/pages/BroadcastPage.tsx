@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion'
-import { ChevronRight } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { CheckCircle2, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -16,25 +16,32 @@ import type { IsianPengumuman } from '@/types/pengumuman'
 /**
  * Halaman Notifikasi & Broadcast.
  *
- * Formulirnya sudah lengkap, tapi pengirimannya belum tersambung: endpoint
- * broadcast belum ada di backend. Penyambungannya task tersendiri.
+ * Pengirimannya belum tersambung ke backend — endpoint broadcast belum ada,
+ * jadi pemberitahuan sukses menyebutkan itu terus terang. Penyambungannya
+ * task tersendiri.
  */
 export function BroadcastPage() {
   // Sasaran pengumuman diambil dari daftar aplikasi yang sebenarnya — endpoint
   // /api/apps sudah tersedia, jadi tidak perlu data tiruan di sini.
   const { memuat, daftar, pesanGagal, muatUlang } = useDaftarAplikasi()
 
-  const [catatan, setCatatan] = useState<string | null>(null)
+  const [pemberitahuan, setPemberitahuan] = useState<string | null>(null)
+  // Ganti key = formulir dipasang ulang, jadi isiannya bersih setelah terkirim.
+  const [kunciForm, setKunciForm] = useState(0)
 
   function kirimPengumuman(isian: IsianPengumuman) {
-    const sasaran =
-      isian.appId === null
-        ? 'seluruh aplikasi'
-        : (daftar.find((item) => item.appId === isian.appId)?.nama ?? 'aplikasi terpilih')
+    const aplikasi = daftar.find((item) => item.appId === isian.appId)
 
-    setCatatan(
-      `Pengumuman "${isian.judul}" untuk ${sasaran} belum benar-benar terkirim — endpoint broadcast belum tersedia di backend.`,
+    const sasaran = isian.appId === null ? 'semua aplikasi' : (aplikasi?.nama ?? 'aplikasi terpilih')
+    const penerima =
+      isian.appId === null
+        ? daftar.reduce((jumlah, item) => jumlah + item.jumlahTenant, 0)
+        : (aplikasi?.jumlahTenant ?? 0)
+
+    setPemberitahuan(
+      `Pengumuman "${isian.judul}" dikirim ke ${sasaran} — ${penerima} tenant. Belum benar-benar tersimpan: endpoint broadcast belum tersedia di backend.`,
     )
+    setKunciForm((n) => n + 1)
   }
 
   return (
@@ -44,21 +51,27 @@ export function BroadcastPage() {
         deskripsi="Kirim pengumuman ke seluruh tenant atau ke satu aplikasi tertentu."
       />
 
-      {catatan && (
-        <div
-          role="status"
-          className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-suspended/30 bg-suspended/10 px-4 py-3 text-sm text-ink"
-        >
-          <span>{catatan}</span>
-          <button
-            type="button"
-            onClick={() => setCatatan(null)}
-            className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
+      <AnimatePresence>
+        {pemberitahuan && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            role="status"
+            className="mb-5 flex items-start gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-ink"
           >
-            Tutup
-          </button>
-        </div>
-      )}
+            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-accent-bright" aria-hidden="true" />
+            <span className="flex-1">{pemberitahuan}</span>
+            <button
+              type="button"
+              onClick={() => setPemberitahuan(null)}
+              className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
+            >
+              Tutup
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.div variants={varianDaftar} initial="awal" animate="tampil" className="grid gap-5">
         <KartuSeksi
@@ -74,7 +87,11 @@ export function BroadcastPage() {
               onCobaLagi={muatUlang}
             />
           ) : (
-            <FormPengumuman daftarAplikasi={daftar} onKirim={kirimPengumuman} />
+            <FormPengumuman
+              key={kunciForm}
+              daftarAplikasi={daftar}
+              onKirim={kirimPengumuman}
+            />
           )}
         </KartuSeksi>
 
