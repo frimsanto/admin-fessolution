@@ -10,9 +10,33 @@ BilliardOS, dst), tenant, billing manual, dan broadcast. **Bukan** untuk diakses
 ## Struktur
 
 ```
-backend/    Express.js + TypeScript + Prisma (PostgreSQL `platform_admin`)
-frontend/   React + Vite + Tailwind CSS  (menyusul)
+backend/    Express.js + TypeScript + Prisma (PostgreSQL `platform_admin`) — port 4002
+frontend/   React + Vite + Tailwind v4 + Framer Motion — port 5175
 ```
+
+## Menjalankan frontend
+
+```bash
+cd frontend
+npm install
+npm run dev               # http://localhost:5175
+```
+
+`/api` di-proxy ke `http://localhost:4002` saat dev. Untuk production set
+`VITE_API_BASE_URL=https://admin.fessolution.my.id/api`.
+
+> Port dev sengaja 5175 (`strictPort`) karena 5173 dipakai CafeOS di mesin dev.
+
+### Desain
+
+Dark premium — latar `#0a0a0f`, aksen ungu `#7c3aed`, kartu bergaris
+`rgba(255,255,255,0.06)`, font Geist. Token-nya ada di
+[src/index.css](frontend/src/index.css) (`@theme`), sidebar icon-only 60px dengan
+tooltip, transisi halaman & reveal kartu pakai Framer Motion. Semua teks UI
+berbahasa Indonesia.
+
+Token JWT super admin dibaca dari `localStorage['admin-token']` oleh
+[src/lib/api.ts](frontend/src/lib/api.ts) — auth-nya sendiri belum dibuat.
 
 ## Menjalankan backend
 

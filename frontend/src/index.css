@@ -1,0 +1,86 @@
+@import 'tailwindcss';
+
+/* ── Design token Super Admin FES Solution — dark premium ───────────────── */
+@theme {
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Permukaan */
+  --color-base: #0a0a0f;
+  --color-surface: #0f0f16;
+  --color-surface-hover: #15151f;
+  --color-elevated: #1a1a25;
+
+  /* Garis pemisah tipis */
+  --color-hairline: rgba(255, 255, 255, 0.06);
+  --color-hairline-strong: rgba(255, 255, 255, 0.12);
+
+  /* Aksen ungu */
+  --color-accent: #7c3aed;
+  --color-accent-bright: #a78bfa;
+  --color-accent-soft: rgba(124, 58, 237, 0.14);
+
+  /* Teks */
+  --color-ink: #ededf2;
+  --color-ink-muted: #9a9aa8;
+  --color-ink-faint: #6b6b7a;
+
+  /* Status tenant */
+  --color-trial: #38bdf8;
+  --color-aktif: #34d399;
+  --color-suspended: #fbbf24;
+  --color-expired: #f87171;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-base);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Cahaya ungu samar di sudut atas — kesan premium tanpa mengganggu. */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -20rem;
+    left: 50%;
+    z-index: -1;
+    height: 40rem;
+    width: 70rem;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(124, 58, 237, 0.13), transparent 68%);
+    pointer-events: none;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent-bright);
+    outline-offset: 2px;
+  }
+
+  /* Scrollbar gelap agar menyatu dengan panel. */
+  * {
+    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
