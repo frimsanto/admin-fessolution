@@ -8,6 +8,7 @@ import { DaftarAplikasiPage } from '@/pages/DaftarAplikasiPage'
 import { DaftarTenantPage } from '@/pages/DaftarTenantPage'
 import { DetailTenantPage } from '@/pages/DetailTenantPage'
 import { HalamanSegeraHadir } from '@/pages/HalamanSegeraHadir'
+import { LoginPage } from '@/pages/LoginPage'
 import { RiwayatPengumumanPage } from '@/pages/RiwayatPengumumanPage'
 import { StatistikAplikasiPage } from '@/pages/StatistikAplikasiPage'
 
@@ -17,6 +18,9 @@ export default function App() {
     // Riwayat melihat daftar yang sama saat berpindah.
     <PengumumanProvider>
       <Routes>
+        {/* Di luar AppShell: halaman login tampil tanpa sidebar. */}
+        <Route path="login" element={<LoginPage />} />
+
         <Route element={<AppShell />}>
           <Route
             index
