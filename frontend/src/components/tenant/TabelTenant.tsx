@@ -14,14 +14,26 @@ function warnaSisaHari(tanggalBerakhir: string): string {
   return 'text-ink-faint'
 }
 
-export function TabelTenant({ daftar }: { daftar: Tenant[] }) {
+type Props = {
+  daftar: Tenant[]
+  /** Ganti nilainya untuk memutar ulang animasi munculnya baris (mis. saat filter berubah). */
+  kunciAnimasi?: string
+  pesanKosong?: { judul: string; detail: string }
+}
+
+const KOSONG_BAWAAN = {
+  judul: 'Belum ada tenant',
+  detail: 'Tenant akan muncul di sini begitu ada yang mendaftar ke salah satu aplikasi.',
+}
+
+export function TabelTenant({ daftar, kunciAnimasi, pesanKosong }: Props) {
   if (daftar.length === 0) {
+    const { judul, detail } = pesanKosong ?? KOSONG_BAWAAN
+
     return (
       <div className="rounded-2xl border border-hairline bg-surface px-6 py-16 text-center">
-        <p className="text-sm font-medium text-ink">Belum ada tenant</p>
-        <p className="mt-1 text-sm text-ink-faint">
-          Tenant akan muncul di sini begitu ada yang mendaftar ke salah satu aplikasi.
-        </p>
+        <p className="text-sm font-medium text-ink">{judul}</p>
+        <p className="mx-auto mt-1 max-w-md text-sm text-ink-faint">{detail}</p>
       </div>
     )
   }
@@ -44,7 +56,7 @@ export function TabelTenant({ daftar }: { daftar: Tenant[] }) {
             </tr>
           </thead>
 
-          <motion.tbody variants={varianDaftar} initial="awal" animate="tampil">
+          <motion.tbody key={kunciAnimasi} variants={varianDaftar} initial="awal" animate="tampil">
             {daftar.map((tenant) => (
               <motion.tr
                 key={tenant.id}
