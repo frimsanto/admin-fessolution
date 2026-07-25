@@ -2,21 +2,20 @@ import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import {
+  ModalCatatanPembayaran,
+  type IsianPembayaran,
+} from '@/components/billing/ModalCatatanPembayaran'
 import { BadgeStatus } from '@/components/ui/BadgeStatus'
 import { SeksiKosong } from '@/components/ui/KartuSeksi'
-import { ModalKonfirmasi } from '@/components/ui/ModalKonfirmasi'
 import { formatTanggal } from '@/lib/format'
-import {
-  HARI_PERPANJANGAN,
-  tanggalSetelahPerpanjangan,
-  tenantMenungguKonfirmasi,
-} from '@/lib/konfirmasi-pembayaran'
+import { tenantMenungguKonfirmasi } from '@/lib/konfirmasi-pembayaran'
 import type { Tenant } from '@/types/tenant'
 
 type Props = {
   daftar: Tenant[]
-  /** Dipanggil setelah super admin menyetujui konfirmasi. */
-  onKonfirmasi: (tenant: Tenant) => void
+  /** Dipanggil setelah super admin mengisi dan menyetujui konfirmasi. */
+  onKonfirmasi: (tenant: Tenant, isian: IsianPembayaran) => void
 }
 
 export function KonfirmasiPembayaran({ daftar, onKonfirmasi }: Props) {
@@ -66,27 +65,13 @@ export function KonfirmasiPembayaran({ daftar, onKonfirmasi }: Props) {
         ))}
       </ul>
 
-      <ModalKonfirmasi
-        terbuka={dipilih !== null}
-        judul="Konfirmasi pembayaran tenant?"
-        labelKonfirmasi="Ya, sudah dibayar"
+      <ModalCatatanPembayaran
+        tenant={dipilih}
         onBatal={() => setDipilih(null)}
-        onKonfirmasi={() => {
-          if (dipilih) onKonfirmasi(dipilih)
+        onSimpan={(tenant, isian) => {
+          onKonfirmasi(tenant, isian)
           setDipilih(null)
         }}
-        deskripsi={
-          dipilih && (
-            <>
-              <span className="font-medium text-ink">{dipilih.namaBisnis}</span> akan berubah
-              menjadi Aktif dan masa berlakunya diperpanjang {HARI_PERPANJANGAN} hari, menjadi{' '}
-              <span className="font-medium text-ink tabular-nums">
-                {formatTanggal(tanggalSetelahPerpanjangan(dipilih.tanggalBerakhir))}
-              </span>
-              . Lakukan ini hanya setelah pembayarannya benar-benar masuk.
-            </>
-          )
-        }
       />
     </>
   )

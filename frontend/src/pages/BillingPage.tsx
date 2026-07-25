@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 
 import { DaftarPeringatan } from '@/components/billing/DaftarPeringatan'
 import { KonfirmasiPembayaran } from '@/components/billing/KonfirmasiPembayaran'
+import type { IsianPembayaran } from '@/components/billing/ModalCatatanPembayaran'
 import { RingkasanLangganan } from '@/components/billing/RingkasanLangganan'
 import { RiwayatPembayaran, totalNilaiPembayaran } from '@/components/billing/RiwayatPembayaran'
 import { JudulHalaman } from '@/components/layout/JudulHalaman'
@@ -14,6 +15,7 @@ import { formatRupiah, formatTanggal } from '@/lib/format'
 import { HARI_PERPANJANGAN, tenantSetelahKonfirmasi } from '@/lib/konfirmasi-pembayaran'
 import { varianDaftar } from '@/lib/motion'
 import { AMBANG_HARI } from '@/lib/peringatan-masa-aktif'
+import type { Pembayaran } from '@/types/pembayaran'
 import type { Tenant } from '@/types/tenant'
 
 export function BillingPage() {
@@ -21,6 +23,7 @@ export function BillingPage() {
 
   // Hasil konfirmasi disimpan lokal karena endpoint pembayaran belum ada.
   const [perubahanLokal, setPerubahanLokal] = useState<Record<string, Tenant>>({})
+  const [pembayaranBaru, setPembayaranBaru] = useState<Pembayaran[]>([])
   const [pemberitahuan, setPemberitahuan] = useState<string | null>(null)
 
   const daftarTampil = useMemo(
@@ -28,11 +31,31 @@ export function BillingPage() {
     [daftar, perubahanLokal],
   )
 
-  function konfirmasiPembayaran(tenant: Tenant) {
+  const riwayat = useMemo(
+    () => [...pembayaranBaru, ...PEMBAYARAN_TIRUAN],
+    [pembayaranBaru],
+  )
+
+  function konfirmasiPembayaran(tenant: Tenant, isian: IsianPembayaran) {
     const diperbarui = tenantSetelahKonfirmasi(tenant)
     setPerubahanLokal((lama) => ({ ...lama, [tenant.id]: diperbarui }))
+
+    // Catat juga ke riwayat supaya hasilnya langsung terlihat.
+    setPembayaranBaru((lama) => [
+      {
+        id: `py-lokal-${tenant.id}-${lama.length}`,
+        tenantId: tenant.id,
+        namaBisnis: tenant.namaBisnis,
+        aplikasi: tenant.aplikasi,
+        jumlah: isian.jumlah,
+        tanggalBayar: new Date().toISOString(),
+        catatanAdmin: isian.catatanAdmin,
+      },
+      ...lama,
+    ])
+
     setPemberitahuan(
-      `Pembayaran ${tenant.namaBisnis} dikonfirmasi. Status menjadi Aktif dan masa berlaku diperpanjang ${HARI_PERPANJANGAN} hari sampai ${formatTanggal(diperbarui.tanggalBerakhir)}. Perubahan ini belum tersimpan — endpoint pembayaran belum tersedia.`,
+      `Pembayaran ${tenant.namaBisnis} sebesar ${formatRupiah(isian.jumlah)} dikonfirmasi. Status menjadi Aktif dan masa berlaku diperpanjang ${HARI_PERPANJANGAN} hari sampai ${formatTanggal(diperbarui.tanggalBerakhir)}. Perubahan ini belum tersimpan — endpoint pembayaran belum tersedia.`,
     )
   }
 
@@ -110,12 +133,12 @@ export function BillingPage() {
             deskripsi="Pembayaran yang sudah dikonfirmasi super admin."
             aksi={
               <span className="rounded-lg border border-hairline px-2.5 py-1 text-xs text-ink-muted tabular-nums">
-                {formatRupiah(totalNilaiPembayaran(PEMBAYARAN_TIRUAN))}
+                {formatRupiah(totalNilaiPembayaran(riwayat))}
               </span>
             }
             isiRapat
           >
-            <RiwayatPembayaran daftar={PEMBAYARAN_TIRUAN} />
+            <RiwayatPembayaran daftar={riwayat} />
           </KartuSeksi>
         </div>
       </motion.div>
