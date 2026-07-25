@@ -3,9 +3,9 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import { env } from './config/env';
-import { errorHandler, notFoundHandler } from './middlewares/error-handler';
-import routes from './routes';
+import { env } from './config/env.js';
+import { errorHandler, notFoundHandler } from './middlewares/error-handler.js';
+import routes from './routes/index.js';
 
 export function buatApp() {
   const app = express();

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
-import { asyncHandler } from '../../middlewares/async-handler';
-import { getDaftarAplikasi, getRingkasan, getStatistikTenant } from './dashboard.controller';
+import { asyncHandler } from '../../middlewares/async-handler.js';
+import { getDaftarAplikasi, getRingkasan, getStatistikTenant } from './dashboard.controller.js';
 
 const router = Router();
 

@@ -1,6 +1,6 @@
-import { prisma } from '../../lib/prisma';
-import { TenantStatus } from '../../generated/prisma/enums';
-import { awalBulanWib, tambahHari } from '../../utils/tanggal';
+import { prisma } from '../../lib/prisma.js';
+import { TenantStatus } from '../../generated/prisma/enums.js';
+import { awalBulanWib, tambahHari } from '../../utils/tanggal.js';
 
 export type StatistikTenantPerAplikasi = {
   appId: string;

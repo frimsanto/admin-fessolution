@@ -1,6 +1,6 @@
-import { buatApp } from './app';
-import { env } from './config/env';
-import { tutupKoneksiPrisma } from './lib/prisma';
+import { buatApp } from './app.js';
+import { env } from './config/env.js';
+import { tutupKoneksiPrisma } from './lib/prisma.js';
 
 const app = buatApp();
 

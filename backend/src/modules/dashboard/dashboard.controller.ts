@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
 
-import { kirimSukses } from '../../utils/api-response';
+import { kirimSukses } from '../../utils/api-response.js';
 import {
   ambilDaftarAplikasi,
   ambilRingkasanDashboard,
   ambilStatistikTenant,
-} from './dashboard.service';
+} from './dashboard.service.js';
 
 /** GET /api/dashboard/ringkasan */
 export async function getRingkasan(_req: Request, res: Response): Promise<void> {

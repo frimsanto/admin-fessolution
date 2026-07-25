@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 
-import { env } from '../config/env';
-import { kirimGagal } from '../utils/api-response';
+import { env } from '../config/env.js';
+import { kirimGagal } from '../utils/api-response.js';
 
 /** Error aplikasi dengan status HTTP eksplisit. */
 export class AppError extends Error {
