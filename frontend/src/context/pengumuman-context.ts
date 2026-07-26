@@ -1,17 +1,23 @@
 import { createContext, useContext } from 'react'
 
 import type { IsianPengumuman, Pengumuman } from '@/types/pengumuman'
-import type { AplikasiRingkas } from '@/types/tenant'
 
 export type NilaiPengumuman = {
-  /** Riwayat pengumuman, terbaru belum tentu di depan — komponen yang mengurutkan. */
+  /** Riwayat pengumuman dari `GET /api/broadcast`, terbaru lebih dulu. */
   daftar: Pengumuman[]
+  memuat: boolean
+  /** Pesan kegagalan saat memuat riwayat; null kalau baik-baik saja. */
+  pesanGagal: string | null
+  muatUlang: () => void
   /**
-   * Catat pengumuman baru. `aplikasi` null berarti dikirim ke seluruh aplikasi;
-   * pemanggilnya yang mencocokkan `isian.appId` ke aplikasi karena formulir
-   * hanya memegang id-nya.
+   * Kirim pengumuman ke `POST /api/broadcast` lalu sisipkan hasilnya ke
+   * riwayat. `slugAplikasi` null berarti dikirim ke seluruh aplikasi —
+   * pemanggilnya yang menerjemahkan `isian.appId` menjadi slug, karena
+   * formulir hanya memegang id-nya.
+   *
+   * Melempar ApiError kalau server menolak.
    */
-  kirim: (isian: IsianPengumuman, aplikasi: AplikasiRingkas | null) => Pengumuman
+  kirim: (isian: IsianPengumuman, slugAplikasi: string | null) => Promise<Pengumuman>
 }
 
 export const KonteksPengumuman = createContext<NilaiPengumuman | null>(null)

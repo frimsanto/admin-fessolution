@@ -1,38 +1,76 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 
+import { useAuth } from '@/context/auth-context'
 import { KonteksPengumuman, type NilaiPengumuman } from '@/context/pengumuman-context'
-import { PENGUMUMAN_TIRUAN } from '@/data/pengumuman-tiruan'
+import { ambilRiwayatPengumuman, kirimPengumuman } from '@/services/pengumuman'
 import type { IsianPengumuman, Pengumuman } from '@/types/pengumuman'
-import type { AplikasiRingkas } from '@/types/tenant'
 
 /**
- * Menyimpan riwayat pengumuman selama sesi berjalan, supaya pengumuman yang
- * baru dikirim langsung terlihat di halaman Broadcast maupun Riwayat.
+ * Riwayat pengumuman dari backend, dipegang di atas router supaya halaman
+ * Broadcast dan Riwayat melihat daftar yang sama saat berpindah.
  *
- * Isinya masih disemai dari data tiruan dan hilang begitu halaman dimuat
- * ulang — endpoint broadcast belum ada. Saat endpointnya siap, provider ini
- * yang diganti panggilan API, bukan halaman-halamannya.
+ * Sumbernya `GET /api/broadcast`, jadi isinya bertahan setelah halaman dimuat
+ * ulang — sebelumnya daftar ini hanya hidup di memori dan hilang setiap F5.
  */
 export function PengumumanProvider({ children }: { children: ReactNode }) {
-  const [daftar, setDaftar] = useState<Pengumuman[]>(PENGUMUMAN_TIRUAN)
+  const { sudahMasuk } = useAuth()
+
+  const [daftar, setDaftar] = useState<Pengumuman[]>([])
+  const [memuat, setMemuat] = useState(false)
+  const [pesanGagal, setPesanGagal] = useState<string | null>(null)
+  const [pemicuUlang, setPemicuUlang] = useState(0)
+
+  const muatUlang = useCallback(() => setPemicuUlang((n) => n + 1), [])
+
+  useEffect(() => {
+    // Riwayat ada di balik guard: tanpa sesi permintaannya pasti ditolak 401,
+    // jadi jangan dikirim sama sekali dan kosongkan daftar yang tersisa.
+    if (!sudahMasuk) {
+      setDaftar([])
+      setMemuat(false)
+      setPesanGagal(null)
+      return
+    }
+
+    const kontrol = new AbortController()
+    setMemuat(true)
+    setPesanGagal(null)
+
+    ambilRiwayatPengumuman(kontrol.signal)
+      .then((hasil) => {
+        setDaftar(hasil.daftar)
+        setMemuat(false)
+      })
+      .catch((err: unknown) => {
+        if (kontrol.signal.aborted) return
+
+        setDaftar([])
+        setMemuat(false)
+        setPesanGagal(err instanceof Error ? err.message : 'Gagal memuat riwayat pengumuman')
+      })
+
+    return () => kontrol.abort()
+  }, [sudahMasuk, pemicuUlang])
 
   const kirim = useCallback(
-    (isian: IsianPengumuman, aplikasi: AplikasiRingkas | null): Pengumuman => {
-      const baru: Pengumuman = {
-        id: `bc-lokal-${crypto.randomUUID()}`,
-        aplikasi,
+    async (isian: IsianPengumuman, slugAplikasi: string | null): Promise<Pengumuman> => {
+      const terkirim = await kirimPengumuman({
         judul: isian.judul,
-        pesan: isian.pesan,
-        dikirimPada: new Date().toISOString(),
-      }
+        isi: isian.pesan,
+        slugAplikasi,
+      })
 
-      setDaftar((lama) => [baru, ...lama])
-      return baru
+      // Backend mengurutkan terbaru lebih dulu; yang baru dikirim pasti paling depan.
+      setDaftar((lama) => [terkirim, ...lama])
+      return terkirim
     },
     [],
   )
 
-  const nilai = useMemo<NilaiPengumuman>(() => ({ daftar, kirim }), [daftar, kirim])
+  const nilai = useMemo<NilaiPengumuman>(
+    () => ({ daftar, memuat, pesanGagal, muatUlang, kirim }),
+    [daftar, memuat, pesanGagal, muatUlang, kirim],
+  )
 
   return <KonteksPengumuman value={nilai}>{children}</KonteksPengumuman>
 }

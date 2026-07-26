@@ -4,17 +4,23 @@ import { Link } from 'react-router-dom'
 
 import { DaftarRiwayatPengumuman } from '@/components/broadcast/DaftarRiwayatPengumuman'
 import { JudulHalaman } from '@/components/layout/JudulHalaman'
-import { KartuSeksi } from '@/components/ui/KartuSeksi'
+import { KartuSeksi, SeksiKosong } from '@/components/ui/KartuSeksi'
+import { KeadaanGagal } from '@/components/ui/KeadaanMuat'
 import { usePengumuman } from '@/context/pengumuman-context'
 import { varianDaftar } from '@/lib/motion'
 
 /**
- * Riwayat lengkap pengumuman yang pernah dikirim, termasuk yang baru dikirim
- * pada sesi ini. Sumbernya masih state di memori — endpoint riwayat broadcast
- * belum ada di backend.
+ * Riwayat lengkap pengumuman yang pernah dikirim, dibaca dari
+ * `GET /api/broadcast` — termasuk yang baru dikirim pada sesi ini.
  */
 export function RiwayatPengumumanPage() {
-  const { daftar } = usePengumuman()
+  const { daftar, memuat, pesanGagal, muatUlang } = usePengumuman()
+
+  const deskripsi = memuat
+    ? 'Memuat riwayat pengumuman…'
+    : pesanGagal
+      ? 'Riwayat pengumuman tidak dapat ditampilkan.'
+      : `${daftar.length} pengumuman pernah dikirim ke tenant.`
 
   return (
     <>
@@ -26,18 +32,21 @@ export function RiwayatPengumumanPage() {
         Kembali ke Broadcast
       </Link>
 
-      <JudulHalaman
-        judul="Riwayat Pengumuman"
-        deskripsi={`${daftar.length} pengumuman pernah dikirim ke tenant.`}
-      />
+      <JudulHalaman judul="Riwayat Pengumuman" deskripsi={deskripsi} />
 
       <motion.div variants={varianDaftar} initial="awal" animate="tampil" className="grid gap-5">
-        <KartuSeksi
-          judul="Semua pengumuman"
-          deskripsi="Terbaru lebih dulu."
-          isiRapat
-        >
-          <DaftarRiwayatPengumuman daftar={daftar} />
+        <KartuSeksi judul="Semua pengumuman" deskripsi="Terbaru lebih dulu." isiRapat>
+          {memuat ? (
+            <SeksiKosong pesan="Memuat riwayat pengumuman…" />
+          ) : pesanGagal ? (
+            <KeadaanGagal
+              judul="Gagal memuat riwayat pengumuman"
+              pesan={pesanGagal}
+              onCobaLagi={muatUlang}
+            />
+          ) : (
+            <DaftarRiwayatPengumuman daftar={daftar} />
+          )}
         </KartuSeksi>
       </motion.div>
     </>

@@ -17,38 +17,46 @@ import type { IsianPengumuman } from '@/types/pengumuman'
 /**
  * Halaman Notifikasi & Broadcast.
  *
- * Pengirimannya belum tersambung ke backend — endpoint broadcast belum ada,
- * jadi pemberitahuan sukses menyebutkan itu terus terang. Penyambungannya
- * task tersendiri.
+ * Pengumuman dikirim lewat `POST /api/broadcast` dan riwayatnya dibaca dari
+ * `GET /api/broadcast`, jadi isinya tetap ada setelah halaman dimuat ulang.
  */
 export function BroadcastPage() {
   // Sasaran pengumuman diambil dari daftar aplikasi yang sebenarnya — endpoint
   // /api/apps sudah tersedia, jadi tidak perlu data tiruan di sini.
   const { memuat, daftar, pesanGagal, muatUlang } = useDaftarAplikasi()
-  const { daftar: riwayat, kirim } = usePengumuman()
+  const {
+    daftar: riwayat,
+    memuat: memuatRiwayat,
+    pesanGagal: gagalRiwayat,
+    muatUlang: muatUlangRiwayat,
+    kirim,
+  } = usePengumuman()
 
   const [pemberitahuan, setPemberitahuan] = useState<string | null>(null)
+  const [mengirim, setMengirim] = useState(false)
+  const [galatKirim, setGalatKirim] = useState<string | null>(null)
   // Ganti key = formulir dipasang ulang, jadi isiannya bersih setelah terkirim.
   const [kunciForm, setKunciForm] = useState(0)
 
-  function kirimPengumuman(isian: IsianPengumuman) {
+  async function kirimPengumuman(isian: IsianPengumuman) {
+    // Formulir hanya memegang appId; backend menyaring per slug aplikasi.
     const aplikasi = daftar.find((item) => item.appId === isian.appId)
 
-    const penerima =
-      isian.appId === null
-        ? daftar.reduce((jumlah, item) => jumlah + item.jumlahTenant, 0)
-        : (aplikasi?.jumlahTenant ?? 0)
+    setMengirim(true)
+    setGalatKirim(null)
 
-    // Aplikasi lengkap (nama + slug) dibutuhkan riwayat; formulir hanya tahu id.
-    const terkirim = kirim(
-      isian,
-      aplikasi ? { appId: aplikasi.appId, nama: aplikasi.nama, slug: aplikasi.slug } : null,
-    )
+    try {
+      const terkirim = await kirim(isian, aplikasi?.slug ?? null)
 
-    setPemberitahuan(
-      `Pengumuman "${terkirim.judul}" dikirim ke ${labelSasaran(terkirim)} — ${penerima} tenant. Belum benar-benar tersimpan: endpoint broadcast belum tersedia di backend.`,
-    )
-    setKunciForm((n) => n + 1)
+      setPemberitahuan(
+        `Pengumuman "${terkirim.judul}" dikirim ke ${labelSasaran(terkirim)} — ${terkirim.jumlahPenerima} tenant.`,
+      )
+      setKunciForm((n) => n + 1)
+    } catch (err) {
+      setGalatKirim(err instanceof Error ? err.message : 'Pengumuman gagal dikirim.')
+    } finally {
+      setMengirim(false)
+    }
   }
 
   return (
@@ -97,7 +105,9 @@ export function BroadcastPage() {
             <FormPengumuman
               key={kunciForm}
               daftarAplikasi={daftar}
-              onKirim={kirimPengumuman}
+              sedangMengirim={mengirim}
+              galatServer={galatKirim}
+              onKirim={(isian) => void kirimPengumuman(isian)}
             />
           )}
         </KartuSeksi>
@@ -116,7 +126,17 @@ export function BroadcastPage() {
           }
           isiRapat
         >
-          <DaftarRiwayatPengumuman daftar={riwayat} batas={3} />
+          {memuatRiwayat ? (
+            <SeksiKosong pesan="Memuat riwayat pengumuman…" />
+          ) : gagalRiwayat ? (
+            <KeadaanGagal
+              judul="Gagal memuat riwayat pengumuman"
+              pesan={gagalRiwayat}
+              onCobaLagi={muatUlangRiwayat}
+            />
+          ) : (
+            <DaftarRiwayatPengumuman daftar={riwayat} batas={3} />
+          )}
         </KartuSeksi>
       </motion.div>
     </>

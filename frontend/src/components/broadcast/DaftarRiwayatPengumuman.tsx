@@ -39,11 +39,16 @@ export function DaftarRiwayatPengumuman({ daftar, batas }: Props) {
                 <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-ink-faint">
                   <span>{labelSasaran(pengumuman)}</span>
                   <span aria-hidden="true">·</span>
-                  <span className="tabular-nums">{formatTanggal(pengumuman.dikirimPada)}</span>
+                  <span className="tabular-nums">{formatTanggal(pengumuman.createdAt)}</span>
+                  <span aria-hidden="true">·</span>
+                  <span className="tabular-nums">{pengumuman.jumlahPenerima} tenant</span>
+                  {pengumuman.status === 'DRAFT' && (
+                    <span className="rounded border border-hairline px-1.5 py-0.5">Draf</span>
+                  )}
                 </div>
 
                 {/* Isi dipangkas dua baris; versi utuhnya ada di modal detail. */}
-                <p className="mt-2 line-clamp-2 text-xs text-ink-muted">{pengumuman.pesan}</p>
+                <p className="mt-2 line-clamp-2 text-xs text-ink-muted">{pengumuman.isi}</p>
               </div>
 
               <ChevronRight className="size-4 shrink-0 text-ink-faint" aria-hidden="true" />

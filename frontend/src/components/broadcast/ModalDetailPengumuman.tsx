@@ -38,11 +38,13 @@ export function ModalDetailPengumuman({ pengumuman, onTutup }: Props) {
           <div className="flex flex-wrap items-center gap-x-2 text-xs text-ink-faint">
             <span>{labelSasaran(pengumuman)}</span>
             <span aria-hidden="true">·</span>
-            <span className="tabular-nums">Dikirim {formatTanggal(pengumuman.dikirimPada)}</span>
+            <span className="tabular-nums">Dikirim {formatTanggal(pengumuman.createdAt)}</span>
+            <span aria-hidden="true">·</span>
+            <span className="tabular-nums">{pengumuman.jumlahPenerima} tenant menerima</span>
           </div>
 
           {/* pre-line supaya paragraf yang ditulis super admin tidak menyatu. */}
-          <p className="whitespace-pre-line text-sm text-ink-muted">{pengumuman.pesan}</p>
+          <p className="whitespace-pre-line text-sm text-ink-muted">{pengumuman.isi}</p>
         </div>
       )}
     </ModalDasar>

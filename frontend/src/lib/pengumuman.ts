@@ -3,11 +3,15 @@ import type { Pengumuman } from '@/types/pengumuman'
 /** Terbaru lebih dulu. */
 export function urutkanTerbaru(daftar: Pengumuman[]): Pengumuman[] {
   return [...daftar].sort(
-    (a, b) => new Date(b.dikirimPada).getTime() - new Date(a.dikirimPada).getTime(),
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   )
 }
 
-/** Nama aplikasi sasaran, atau "Semua aplikasi" kalau dikirim ke seluruh platform. */
+/**
+ * Nama sasaran untuk ditampilkan: nama aplikasi atau tenantnya, atau
+ * "Semua aplikasi" kalau dikirim ke seluruh platform.
+ */
 export function labelSasaran(pengumuman: Pengumuman): string {
-  return pengumuman.aplikasi?.nama ?? 'Semua aplikasi'
+  if (pengumuman.sasaran === 'SEMUA') return 'Semua aplikasi'
+  return pengumuman.namaSasaran ?? pengumuman.aplikasiSlug ?? 'Sasaran tidak dikenal'
 }
