@@ -42,7 +42,6 @@ export function DaftarTenantPage() {
 
           <TabelTenant
             daftar={daftar}
-            kunciAnimasi={`${filter.aplikasi}-${filter.status}`}
             pesanKosong={
               disaring
                 ? {

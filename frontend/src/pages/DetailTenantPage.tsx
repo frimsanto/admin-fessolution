@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowLeft,
   Boxes,
@@ -17,7 +16,6 @@ import { KeadaanGagal, KerangkaDetail } from '@/components/ui/KeadaanMuat'
 import { ModalKonfirmasi } from '@/components/ui/ModalKonfirmasi'
 import { useDetailTenant } from '@/hooks/useDetailTenant'
 import { formatTanggal, labelSisaHari, sisaHari } from '@/lib/format'
-import { varianDaftar, varianItem } from '@/lib/motion'
 import {
   akanDitangguhkan as akanDitangguhkanStatus,
   statusSetelahUbah,
@@ -134,37 +132,24 @@ function IsiDetail({ tenant }: { tenant: Tenant }) {
         </button>
       </header>
 
-      <AnimatePresence>
-        {pemberitahuan && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            role="status"
-            className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-ink"
-          >
-            <span>{pemberitahuan}</span>
-            <button
-              type="button"
-              onClick={() => setPemberitahuan(null)}
-              className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
-            >
-              Tutup
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <motion.div
-        variants={varianDaftar}
-        initial="awal"
-        animate="tampil"
-        className="grid gap-5 lg:grid-cols-[1.2fr_1fr]"
-      >
-        <motion.section
-          variants={varianItem}
-          className="overflow-hidden rounded-2xl border border-hairline bg-surface"
+      {pemberitahuan && (
+        <div
+          role="status"
+          className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-ink"
         >
+          <span>{pemberitahuan}</span>
+          <button
+            type="button"
+            onClick={() => setPemberitahuan(null)}
+            className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
+          >
+            Tutup
+          </button>
+        </div>
+      )}
+
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
+        <section className="overflow-hidden rounded-2xl border border-hairline bg-surface">
           <h2 className="border-b border-hairline px-5 py-3.5 text-xs font-medium tracking-wide text-ink-faint uppercase">
             Informasi tenant
           </h2>
@@ -192,12 +177,9 @@ function IsiDetail({ tenant }: { tenant: Tenant }) {
               <span className="font-mono text-xs text-ink-muted">{tenant.id}</span>
             </BarisInfo>
           </div>
-        </motion.section>
+        </section>
 
-        <motion.section
-          variants={varianItem}
-          className="overflow-hidden rounded-2xl border border-hairline bg-surface"
-        >
+        <section className="overflow-hidden rounded-2xl border border-hairline bg-surface">
           <h2 className="border-b border-hairline px-5 py-3.5 text-xs font-medium tracking-wide text-ink-faint uppercase">
             Masa berlaku
           </h2>
@@ -219,8 +201,8 @@ function IsiDetail({ tenant }: { tenant: Tenant }) {
               </span>
             </BarisInfo>
           </div>
-        </motion.section>
-      </motion.div>
+        </section>
+      </div>
 
       <ModalKonfirmasi
         terbuka={modalTerbuka}

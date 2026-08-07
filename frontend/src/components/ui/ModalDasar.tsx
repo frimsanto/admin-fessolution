@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, type ReactNode, type RefObject } from 'react'
 
 type Props = {
@@ -60,41 +59,31 @@ export function ModalDasar({
     }
   }, [terbuka, onTutup, fokusAwal])
 
+  if (!terbuka) return null
+
   return (
-    <AnimatePresence>
-      {terbuka && (
-        <div className="fixed inset-0 z-50 grid place-items-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.16 }}
-            onClick={() => !sedangProses && onTutup()}
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-          />
+    <div className="fixed inset-0 z-50 grid place-items-center p-4">
+      <div
+        onClick={() => !sedangProses && onTutup()}
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+      />
 
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={idJudul}
-            aria-busy={sedangProses}
-            initial={{ opacity: 0, scale: 0.96, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.98, y: 4 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="relative max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-hairline-strong bg-elevated p-6 shadow-2xl shadow-black/60"
-          >
-            <h2 id={idJudul} className="font-semibold text-ink">
-              {judul}
-            </h2>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={idJudul}
+        aria-busy={sedangProses}
+        className="relative max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-hairline-strong bg-elevated p-6 shadow-2xl shadow-black/60"
+      >
+        <h2 id={idJudul} className="font-semibold text-ink">
+          {judul}
+        </h2>
 
-            <div className="mt-2 text-sm text-ink-muted">{children}</div>
+        <div className="mt-2 text-sm text-ink-muted">{children}</div>
 
-            <div className="mt-6 flex justify-end gap-2">{footer}</div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+        <div className="mt-6 flex justify-end gap-2">{footer}</div>
+      </div>
+    </div>
   )
 }
 

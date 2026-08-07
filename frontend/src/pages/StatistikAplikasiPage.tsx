@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 
@@ -8,7 +7,6 @@ import { KartuSeksi, SeksiKosong } from '@/components/ui/KartuSeksi'
 import { KeadaanGagal, KerangkaDetail } from '@/components/ui/KeadaanMuat'
 import { useStatistikAplikasi } from '@/hooks/useStatistikAplikasi'
 import { formatRupiah, formatTanggal } from '@/lib/format'
-import { varianDaftar, varianItem } from '@/lib/motion'
 import { keBarisRingkasan } from '@/lib/ringkasan-langganan'
 import type { StatistikAplikasiResponse } from '@/types/aplikasi'
 import type { DaftarPembayaranResponse } from '@/types/pembayaran'
@@ -69,12 +67,8 @@ function IsiStatistik({
         </p>
       </header>
 
-      <motion.div variants={varianDaftar} initial="awal" animate="tampil" className="grid gap-5">
-        <motion.section
-          variants={varianItem}
-          className="grid gap-4 sm:grid-cols-3"
-          aria-label="Angka utama aplikasi"
-        >
+      <div className="grid gap-5">
+        <section className="grid gap-4 sm:grid-cols-3" aria-label="Angka utama aplikasi">
           <div className="rounded-2xl border border-hairline bg-surface p-5 sm:col-span-1">
             <p className="text-xs text-ink-faint">Total pendapatan</p>
             {/* Angka utama: figur proporsional, warna teks biasa. */}
@@ -99,7 +93,7 @@ function IsiStatistik({
             <p className="mt-2 text-3xl font-semibold text-ink">{statistik.totalTenant}</p>
             <p className="mt-1 text-xs text-ink-faint">termasuk trial dan kedaluwarsa</p>
           </div>
-        </motion.section>
+        </section>
 
         <KartuSeksi
           judul="Status langganan tenant"
@@ -125,7 +119,7 @@ function IsiStatistik({
             <RiwayatPembayaran daftar={pembayaran} />
           )}
         </KartuSeksi>
-      </motion.div>
+      </div>
     </>
   )
 }

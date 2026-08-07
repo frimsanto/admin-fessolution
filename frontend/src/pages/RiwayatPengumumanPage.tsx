@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -7,7 +6,6 @@ import { JudulHalaman } from '@/components/layout/JudulHalaman'
 import { KartuSeksi, SeksiKosong } from '@/components/ui/KartuSeksi'
 import { KeadaanGagal } from '@/components/ui/KeadaanMuat'
 import { usePengumuman } from '@/context/pengumuman-context'
-import { varianDaftar } from '@/lib/motion'
 
 /**
  * Riwayat lengkap pengumuman yang pernah dikirim, dibaca dari
@@ -34,7 +32,7 @@ export function RiwayatPengumumanPage() {
 
       <JudulHalaman judul="Riwayat Pengumuman" deskripsi={deskripsi} />
 
-      <motion.div variants={varianDaftar} initial="awal" animate="tampil" className="grid gap-5">
+      <div className="grid gap-5">
         <KartuSeksi judul="Semua pengumuman" deskripsi="Terbaru lebih dulu." isiRapat>
           {memuat ? (
             <SeksiKosong pesan="Memuat riwayat pengumuman…" />
@@ -48,7 +46,7 @@ export function RiwayatPengumumanPage() {
             <DaftarRiwayatPengumuman daftar={daftar} />
           )}
         </KartuSeksi>
-      </motion.div>
+      </div>
     </>
   )
 }

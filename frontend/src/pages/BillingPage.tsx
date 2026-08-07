@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 
 import { DaftarPeringatan } from '@/components/billing/DaftarPeringatan'
@@ -12,7 +11,6 @@ import { KeadaanGagal } from '@/components/ui/KeadaanMuat'
 import { useBilling } from '@/hooks/useBilling'
 import { useDaftarTenant } from '@/hooks/useDaftarTenant'
 import { formatRupiah, formatTanggal } from '@/lib/format'
-import { varianDaftar } from '@/lib/motion'
 import { konfirmasiPembayaran as kirimKonfirmasi } from '@/services/billing'
 import { LABEL_STATUS, type Tenant } from '@/types/tenant'
 
@@ -95,28 +93,23 @@ export function BillingPage() {
         </div>
       )}
 
-      <AnimatePresence>
-        {pemberitahuan && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            role="status"
-            className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-ink"
+      {pemberitahuan && (
+        <div
+          role="status"
+          className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-ink"
+        >
+          <span>{pemberitahuan}</span>
+          <button
+            type="button"
+            onClick={() => setPemberitahuan(null)}
+            className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
           >
-            <span>{pemberitahuan}</span>
-            <button
-              type="button"
-              onClick={() => setPemberitahuan(null)}
-              className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
-            >
-              Tutup
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            Tutup
+          </button>
+        </div>
+      )}
 
-      <motion.div variants={varianDaftar} initial="awal" animate="tampil" className="grid gap-5">
+      <div className="grid gap-5">
         <KartuSeksi
           judul="Ringkasan status langganan"
           deskripsi="Jumlah tenant berdasarkan masa trial, aktif, dan kedaluwarsa."
@@ -186,7 +179,7 @@ export function BillingPage() {
             )}
           </KartuSeksi>
         </div>
-      </motion.div>
+      </div>
     </>
   )
 }

@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 
 import { Plus } from 'lucide-react'
@@ -9,7 +8,6 @@ import { JudulHalaman } from '@/components/layout/JudulHalaman'
 import { KeadaanGagal, KerangkaKartu } from '@/components/ui/KeadaanMuat'
 import { ModalKonfirmasi } from '@/components/ui/ModalKonfirmasi'
 import { useDaftarAplikasi } from '@/hooks/useDaftarAplikasi'
-import { varianDaftar } from '@/lib/motion'
 import { tambahAplikasi, toggleStatusAplikasi } from '@/services/aplikasi'
 import type { Aplikasi, IsianAplikasiBaru } from '@/types/aplikasi'
 
@@ -117,45 +115,37 @@ export function DaftarAplikasiPage() {
         }
       />
 
-      <AnimatePresence>
-        {pemberitahuan && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            role="status"
-            className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-ink"
+      {pemberitahuan && (
+        <div
+          role="status"
+          className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-ink"
+        >
+          <span>{pemberitahuan}</span>
+          <button
+            type="button"
+            onClick={() => setPemberitahuan(null)}
+            className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
           >
-            <span>{pemberitahuan}</span>
-            <button
-              type="button"
-              onClick={() => setPemberitahuan(null)}
-              className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
-            >
-              Tutup
-            </button>
-          </motion.div>
-        )}
+            Tutup
+          </button>
+        </div>
+      )}
 
-        {galatAksi && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            role="alert"
-            className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-expired/30 bg-expired/10 px-4 py-3 text-sm text-ink"
+      {galatAksi && (
+        <div
+          role="alert"
+          className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-expired/30 bg-expired/10 px-4 py-3 text-sm text-ink"
+        >
+          <span>{galatAksi}</span>
+          <button
+            type="button"
+            onClick={() => setGalatAksi(null)}
+            className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
           >
-            <span>{galatAksi}</span>
-            <button
-              type="button"
-              onClick={() => setGalatAksi(null)}
-              className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
-            >
-              Tutup
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            Tutup
+          </button>
+        </div>
+      )}
 
       {memuat ? (
         <KerangkaKartu />
@@ -166,12 +156,7 @@ export function DaftarAplikasiPage() {
           onCobaLagi={muatUlang}
         />
       ) : (
-        <motion.div
-          variants={varianDaftar}
-          initial="awal"
-          animate="tampil"
-          className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
-        >
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {daftar.map((aplikasi) => (
             <KartuAplikasi
               key={aplikasi.appId}
@@ -179,7 +164,7 @@ export function DaftarAplikasiPage() {
               onUbahStatus={(target) => void ubahStatus(target)}
             />
           ))}
-        </motion.div>
+        </div>
       )}
 
       <ModalTambahAplikasi

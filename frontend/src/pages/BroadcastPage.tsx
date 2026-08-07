@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle2, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -10,7 +9,6 @@ import { KartuSeksi, SeksiKosong } from '@/components/ui/KartuSeksi'
 import { KeadaanGagal } from '@/components/ui/KeadaanMuat'
 import { usePengumuman } from '@/context/pengumuman-context'
 import { useDaftarAplikasi } from '@/hooks/useDaftarAplikasi'
-import { varianDaftar } from '@/lib/motion'
 import { labelSasaran } from '@/lib/pengumuman'
 import type { IsianPengumuman } from '@/types/pengumuman'
 
@@ -66,29 +64,24 @@ export function BroadcastPage() {
         deskripsi="Kirim pengumuman ke seluruh tenant atau ke satu aplikasi tertentu."
       />
 
-      <AnimatePresence>
-        {pemberitahuan && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            role="status"
-            className="mb-5 flex items-start gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-ink"
+      {pemberitahuan && (
+        <div
+          role="status"
+          className="mb-5 flex items-start gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-ink"
+        >
+          <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-accent-bright" aria-hidden="true" />
+          <span className="flex-1">{pemberitahuan}</span>
+          <button
+            type="button"
+            onClick={() => setPemberitahuan(null)}
+            className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
           >
-            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-accent-bright" aria-hidden="true" />
-            <span className="flex-1">{pemberitahuan}</span>
-            <button
-              type="button"
-              onClick={() => setPemberitahuan(null)}
-              className="shrink-0 text-xs text-ink-faint transition-colors hover:text-ink"
-            >
-              Tutup
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            Tutup
+          </button>
+        </div>
+      )}
 
-      <motion.div variants={varianDaftar} initial="awal" animate="tampil" className="grid gap-5">
+      <div className="grid gap-5">
         <KartuSeksi
           judul="Kirim pengumuman"
           deskripsi="Pilih sasaran pengumuman, lalu tulis judul dan isinya."
@@ -138,7 +131,7 @@ export function BroadcastPage() {
             <DaftarRiwayatPengumuman daftar={riwayat} batas={3} />
           )}
         </KartuSeksi>
-      </motion.div>
+      </div>
     </>
   )
 }

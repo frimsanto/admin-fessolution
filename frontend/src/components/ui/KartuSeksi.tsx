@@ -1,7 +1,4 @@
-import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
-
-import { varianItem } from '@/lib/motion'
 
 type Props = {
   judul: string
@@ -23,8 +20,7 @@ export function KartuSeksi({
   className = '',
 }: Props) {
   return (
-    <motion.section
-      variants={varianItem}
+    <section
       className={`overflow-hidden rounded-2xl border border-hairline bg-surface ${className}`}
     >
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-5 py-4">
@@ -36,7 +32,7 @@ export function KartuSeksi({
       </header>
 
       <div className={isiRapat ? '' : 'p-5'}>{children}</div>
-    </motion.section>
+    </section>
   )
 }
 

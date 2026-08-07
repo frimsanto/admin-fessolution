@@ -1,18 +1,14 @@
-import { motion } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { BadgeStatus } from '@/components/ui/BadgeStatus'
 import { formatTanggal, labelSisaHari, sisaHari } from '@/lib/format'
-import { varianDaftar, varianItem } from '@/lib/motion'
 import type { Tenant } from '@/types/tenant'
 
 const KOLOM = ['Bisnis', 'Aplikasi', 'Status', 'Bergabung', 'Masa berlaku']
 
 type Props = {
   daftar: Tenant[]
-  /** Ganti nilainya untuk memutar ulang animasi munculnya baris (mis. saat filter berubah). */
-  kunciAnimasi?: string
   pesanKosong?: { judul: string; detail: string }
 }
 
@@ -37,7 +33,7 @@ function ChipAplikasi({ nama }: { nama: string }) {
 }
 
 /** Tampilan tabel — dipakai mulai layar lebar (lg). */
-function TampilanTabel({ daftar, kunciAnimasi }: { daftar: Tenant[]; kunciAnimasi?: string }) {
+function TampilanTabel({ daftar }: { daftar: Tenant[] }) {
   return (
     <div className="hidden overflow-hidden rounded-2xl border border-hairline bg-surface lg:block">
       <div className="overflow-x-auto">
@@ -59,11 +55,10 @@ function TampilanTabel({ daftar, kunciAnimasi }: { daftar: Tenant[]; kunciAnimas
             </tr>
           </thead>
 
-          <motion.tbody key={kunciAnimasi} variants={varianDaftar} initial="awal" animate="tampil">
+          <tbody>
             {daftar.map((tenant) => (
-              <motion.tr
+              <tr
                 key={tenant.id}
-                variants={varianItem}
                 className="border-b border-hairline transition-colors last:border-0 hover:bg-surface-hover"
               >
                 <td className="px-5 py-4">
@@ -106,9 +101,9 @@ function TampilanTabel({ daftar, kunciAnimasi }: { daftar: Tenant[]; kunciAnimas
                     <ChevronRight className="size-4" aria-hidden="true" />
                   </Link>
                 </td>
-              </motion.tr>
+              </tr>
             ))}
-          </motion.tbody>
+          </tbody>
         </table>
       </div>
     </div>
@@ -116,19 +111,12 @@ function TampilanTabel({ daftar, kunciAnimasi }: { daftar: Tenant[]; kunciAnimas
 }
 
 /** Tampilan kartu — dipakai di layar sempit supaya tidak perlu geser ke samping. */
-function TampilanKartu({ daftar, kunciAnimasi }: { daftar: Tenant[]; kunciAnimasi?: string }) {
+function TampilanKartu({ daftar }: { daftar: Tenant[] }) {
   return (
-    <motion.ul
-      key={kunciAnimasi}
-      variants={varianDaftar}
-      initial="awal"
-      animate="tampil"
-      className="grid gap-3 sm:grid-cols-2 lg:hidden"
-    >
+    <ul className="grid gap-3 sm:grid-cols-2 lg:hidden">
       {daftar.map((tenant) => (
-        <motion.li
+        <li
           key={tenant.id}
-          variants={varianItem}
           className="rounded-2xl border border-hairline bg-surface p-4 transition-colors hover:bg-surface-hover"
         >
           <Link to={`/tenant/${tenant.id}`} className="block">
@@ -163,13 +151,13 @@ function TampilanKartu({ daftar, kunciAnimasi }: { daftar: Tenant[]; kunciAnimas
               </div>
             </dl>
           </Link>
-        </motion.li>
+        </li>
       ))}
-    </motion.ul>
+    </ul>
   )
 }
 
-export function TabelTenant({ daftar, kunciAnimasi, pesanKosong }: Props) {
+export function TabelTenant({ daftar, pesanKosong }: Props) {
   if (daftar.length === 0) {
     const { judul, detail } = pesanKosong ?? KOSONG_BAWAAN
 
@@ -183,8 +171,8 @@ export function TabelTenant({ daftar, kunciAnimasi, pesanKosong }: Props) {
 
   return (
     <>
-      <TampilanTabel daftar={daftar} kunciAnimasi={kunciAnimasi} />
-      <TampilanKartu daftar={daftar} kunciAnimasi={kunciAnimasi} />
+      <TampilanTabel daftar={daftar} />
+      <TampilanKartu daftar={daftar} />
     </>
   )
 }

@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { Eye, EyeOff, Loader2, LogIn } from 'lucide-react'
 import { useState } from 'react'
 
@@ -48,12 +47,7 @@ export function LoginPage() {
 
   return (
     <div className="grid min-h-dvh place-items-center px-4 py-10">
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-sm"
-      >
+      <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 grid size-11 place-items-center rounded-xl bg-accent text-sm font-bold text-white shadow-lg shadow-accent/25">
             FS
@@ -155,7 +149,7 @@ export function LoginPage() {
             {memproses ? 'Memeriksa…' : 'Masuk'}
           </button>
         </form>
-      </motion.div>
+      </div>
     </div>
   )
 }

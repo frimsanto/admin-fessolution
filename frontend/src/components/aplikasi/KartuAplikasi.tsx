@@ -1,9 +1,7 @@
-import { motion } from 'framer-motion'
 import { ChartNoAxesColumn, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { formatTanggal } from '@/lib/format'
-import { varianItem } from '@/lib/motion'
 import type { Aplikasi } from '@/types/aplikasi'
 
 type Props = {
@@ -15,10 +13,7 @@ export function KartuAplikasi({ aplikasi, onUbahStatus }: Props) {
   const idLabel = `status-${aplikasi.slug}`
 
   return (
-    <motion.article
-      variants={varianItem}
-      className="flex flex-col rounded-2xl border border-hairline bg-surface p-5"
-    >
+    <article className="flex flex-col rounded-2xl border border-hairline bg-surface p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="truncate font-medium text-ink">{aplikasi.nama}</h2>
@@ -83,6 +78,6 @@ export function KartuAplikasi({ aplikasi, onUbahStatus }: Props) {
         <ChartNoAxesColumn className="size-4" aria-hidden="true" />
         Lihat statistik
       </Link>
-    </motion.article>
+    </article>
   )
 }
